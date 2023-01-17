@@ -1,6 +1,11 @@
 package utils
 
-
+import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
+)
 
 // Network
 
@@ -16,8 +21,6 @@ func (net *Network) NewNetwork(bits int, bin int) {
 	net.Bin = bin
 	net.Nodes = make(map[int]Node)
 }
-
-
 
 // Nodes
 
@@ -38,6 +41,18 @@ func (net *Network) AddNode(node *Node) bool {
 	node.Net = net
 	net.Nodes[node.Id] = *node
 	return true
+}
+
+func (net *Network) LoadNodes(path string) {
+	fileContent, _ := os.Open(path)
+	defer fileContent.Close()
+	
+	byteResult, _ := ioutil.ReadAll(fileContent)
+
+	var res map[string]interface{}
+	json.Unmarshal([]byte(byteResult), &res)
+ 
+	fmt.Println(res["users"])
 }
 
 

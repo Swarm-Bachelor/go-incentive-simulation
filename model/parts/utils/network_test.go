@@ -27,12 +27,12 @@ func TestAddNode(t *testing.T) {
 
 	// Creates a node
 	n.Nodes[1] = net.Node{
-		Net: &n,
-		Id: 1111,
-		Adj: []int{2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
+		Net:        &n,
+		Id:         1111,
+		Adj:        []int{2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17},
 		StorageSet: make(map[int]net.Node),
-		CacheSet: make(map[int]net.Node),
-		CanPay: true,
+		CacheSet:   make(map[int]net.Node),
+		CanPay:     true,
 	}
 
 	// Asserts the network
@@ -52,19 +52,19 @@ func TestAddNodesToNetwork(t *testing.T) {
 	assert.Equal(t, 0, len(n1.Nodes))
 
 	node1 := net.Node{
-		Id: 1111,
-		Adj: []int{10, 11, 12, 13, 14, 15, 16, 17},
+		Id:         1111,
+		Adj:        []int{10, 11, 12, 13, 14, 15, 16, 17},
 		StorageSet: make(map[int]net.Node),
-		CacheSet: make(map[int]net.Node),
-		CanPay: true,
+		CacheSet:   make(map[int]net.Node),
+		CanPay:     true,
 	}
 
 	node2 := net.Node{
-		Id: 2222,
-		Adj: []int{2, 3, 4, 5, 6, 7, 8,},
+		Id:         2222,
+		Adj:        []int{2, 3, 4, 5, 6, 7, 8},
 		StorageSet: make(map[int]net.Node),
-		CacheSet: make(map[int]net.Node),
-		CanPay: false,
+		CacheSet:   make(map[int]net.Node),
+		CanPay:     false,
 	}
 	// Adds tow nodes to network 1
 	n1.AddNode(&node1)
@@ -82,19 +82,19 @@ func TestAddNodesToNetwork(t *testing.T) {
 	assert.Equal(t, 0, len(n2.Nodes))
 
 	node3 := net.Node{
-		Id: 1111,
-		Adj: []int{13, 14, 15, 16, 17},
+		Id:         1111,
+		Adj:        []int{13, 14, 15, 16, 17},
 		StorageSet: make(map[int]net.Node),
-		CacheSet: make(map[int]net.Node),
-		CanPay: true,
+		CacheSet:   make(map[int]net.Node),
+		CanPay:     true,
 	}
 
 	node4 := net.Node{
-		Id: 2222,
-		Adj: []int{7, 8, 9, 10, 11, 12, 13},
+		Id:         2222,
+		Adj:        []int{7, 8, 9, 10, 11, 12, 13},
 		StorageSet: make(map[int]net.Node),
-		CacheSet: make(map[int]net.Node),
-		CanPay: false,
+		CacheSet:   make(map[int]net.Node),
+		CanPay:     false,
 	}
 	// Adds tow nodes to network 2
 	n2.AddNode(&node3)
@@ -105,3 +105,11 @@ func TestAddNodesToNetwork(t *testing.T) {
 	// Logs the nodes
 	log.Printf("Node: %+v\n", n2.Nodes)
 }
+
+// func TestLoad(t *testing.T) {
+// 	path := "input_test.txt"
+
+// 	f := net.LoadNodes(path)
+
+// 	log.Printf("File: %+v\n", f)
+// }
