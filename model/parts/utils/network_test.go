@@ -10,17 +10,22 @@ import (
 )
 
 func TestNetwork(t *testing.T) {
+	// Creates a network
 	n := net.Network{}
 	n.NewNetwork(8, 16)
+
+	// Asserts the network
 	assert.Equal(t, 8, n.Bits)
 	assert.Equal(t, 16, n.Bin)
 	assert.NotNil(t, n.Nodes)
 }
 
 func TestAddNode(t *testing.T) {
+	// Creates a network
 	n := net.Network{}
 	n.NewNetwork(8, 16)
 
+	// Creates a node
 	n.Nodes[1] = net.Node{
 		Net: &n,
 		Id: 1111,
@@ -30,6 +35,7 @@ func TestAddNode(t *testing.T) {
 		CanPay: true,
 	}
 
+	// Asserts the network
 	assert.Equal(t, 1, len(n.Nodes))
 	assert.Equal(t, 1111, n.Nodes[1].Id)
 	assert.Equal(t, 16, len(n.Nodes[1].Adj))
@@ -39,6 +45,7 @@ func TestAddNode(t *testing.T) {
 }
 
 func TestAddNodesToNetwork(t *testing.T) {
+	// Creates network 1
 	n1 := net.Network{}
 	n1.NewNetwork(8, 16)
 
@@ -59,12 +66,16 @@ func TestAddNodesToNetwork(t *testing.T) {
 		CacheSet: make(map[int]net.Node),
 		CanPay: false,
 	}
+	// Adds tow nodes to network 1
 	n1.AddNode(&node1)
 	n1.AddNode(&node2)
 
+	// Checks if the nodes were added to the network
 	assert.Equal(t, 2, len(n1.Nodes))
+	// Logs the nodes
 	log.Printf("Node %+v\n", n1.Nodes)
 
+	// Creates network 2
 	n2 := net.Network{}
 	n2.NewNetwork(8, 16)
 
@@ -85,10 +96,12 @@ func TestAddNodesToNetwork(t *testing.T) {
 		CacheSet: make(map[int]net.Node),
 		CanPay: false,
 	}
+	// Adds tow nodes to network 2
 	n2.AddNode(&node3)
 	n2.AddNode(&node4)
 
+	// Checks if the nodes were added to the network
 	assert.Equal(t, 2, len(n2.Nodes))
+	// Logs the nodes
 	log.Printf("Node: %+v\n", n2.Nodes)
-
 }
