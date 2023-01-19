@@ -2,8 +2,7 @@ package utils
 
 import (
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -33,6 +32,8 @@ type Node struct {
 	CanPay bool // can pay
 }
 
+
+
 // add a node to the network
 func (net *Network) AddNode(node *Node) bool {
 	if node.Net != nil {
@@ -43,25 +44,37 @@ func (net *Network) AddNode(node *Node) bool {
 	return true
 }
 
-func (net *Network) LoadNodes(path string) {
-	fileContent, _ := os.Open(path)
-	defer fileContent.Close()
-	
-	byteResult, _ := ioutil.ReadAll(fileContent)
 
-	var res map[string]interface{}
-	json.Unmarshal([]byte(byteResult), &res)
- 
-	fmt.Println(res["users"])
+
+func LoadNodes(path string){
+	file, _ := os.Open(path)
+
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+
+
+
+    log.Println(&decoder)
+
 }
 
+// func LoadNodes(path string) bool {
+// 	file, _ := os.Open(path)
 
+// 	defer file.Close()
 
+// 	decoder := json.NewDecoder(file)
 
-// func (node *Node) add(other *Node) bool {
-// 	net := &node.Net
-// 	if (net == nil) || &other.Net != net || node == other {
-// 		return false
+// 	var test Test
+// 	decoder.Decode(&test)
+
+// 	fmt.Println(test.Bin)
+// 	fmt.Println(test.Bits)
+
+// 	for i := 0; i < len(test.Nodes); i++ {
+// 		fmt.Println(test.Nodes[i])
 // 	}
-// 	bits := net.Bits - (node.Id ^ other.Id)
+
+// 	return true
 // }

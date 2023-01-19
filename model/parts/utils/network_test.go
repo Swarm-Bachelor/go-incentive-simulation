@@ -106,10 +106,8 @@ func TestAddNodesToNetwork(t *testing.T) {
 	log.Printf("Node: %+v\n", n2.Nodes)
 }
 
-// func TestLoad(t *testing.T) {
-// 	path := "input_test.txt"
+func TestLoad(t *testing.T) {
 
-// 	f := net.LoadNodes(path)
+	net.LoadNodes("input_test.json")
 
-// 	log.Printf("File: %+v\n", f)
-// }
+}
