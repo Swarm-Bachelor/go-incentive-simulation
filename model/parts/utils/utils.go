@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	ct "go-incentive-simulation/model"
+	ct "go-incentive-simulation/model/constants"
 	"math/rand"
 	"time"
 )
