@@ -9,14 +9,6 @@ import (
 	"time"
 )
 
-type Response struct {
-	found               bool
-	route               Route
-	thresholdFailedList [][]Threshold
-	accessFailed        bool
-	paymentsList        []Payment
-}
-
 func findResponsibleNodes(nodesId []int, chunkAdd int) []int {
 	var v []int
 	for i := range nodesId {
