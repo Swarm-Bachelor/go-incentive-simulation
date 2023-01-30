@@ -42,7 +42,9 @@ func UpdateOriginatorIndex(prevState State, policyInput Policy) State {
 	return prevState
 }
 
-// TODO: function convert and dump to file
+func ConvertAndDumpToFile(routes []Route, timestep int) {
+	//TODO: implement this function
+}
 
 func UpdateRouteListAndFlush(prevState State, policyInput Policy) State {
 	prevState.RouteLists = append(prevState.RouteLists, policyInput.Route)
@@ -55,10 +57,54 @@ func UpdateRouteListAndFlush(prevState State, policyInput Policy) State {
 	return prevState
 }
 
-// TODO: Implement this function
-func UpdateCacheMap(prevState State, policyInput Policy) State {
-	return prevState
-}
+// Does not work with current type of cacheMap
+// func UpdateCacheMap(prevState State, policyInput Policy) State {
+// 	cacheMap := prevState.CacheListMap
+// 	chunkAddr := 0
+// 	if Constants.IsCacheEnabled() {
+// 		route := policyInput.Route
+// 		if Contains(route, -3) {
+// 			chunkAddr = route[len(route)-2]
+// 		} else {
+// 			chunkAddr = route[len(route)-1]
+// 		}
+// 		if !Contains(route, -1) && !Contains(route, -2) {
+// 			if Contains(route, -3) {
+// 				for i := 0; i < len(route)-3; i++ {
+// 					if _, ok := cacheMap[route[i]]; ok {
+// 						val := cacheMap[route[i]]
+// 						if Contains(val, chunkAddr) {
+// 							val[chunkAddr] += 1
+// 						} else {
+// 							val[chunkAddr] = 1
+// 						}
+// 					} else {
+// 						cacheMap[route[i]] = []int{}
+// 						val := cacheMap[route[i]]
+// 						val[chunkAddr] = 1
+// 					}
+// 				}
+// 			} else {
+// 				for i := 0; i < len(route)-2; i++ {
+// 					if _, ok := cacheMap[route[i]]; ok {
+// 						val := cacheMap[route[i]]
+// 						if Contains(val, chunkAddr) {
+// 							val[chunkAddr] += 1
+// 						} else {
+// 							val[chunkAddr] = 1
+// 						}
+// 					} else {
+// 						cacheMap[route[i]] = []int{}
+// 						val := cacheMap[route[i]]
+// 						val[chunkAddr] = 1
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+// 	prevState.CacheListMap = cacheMap
+// 	return prevState
+// }
 
 func UpdateRerouteMap(prevState State, policyInput Policy) State {
 	rerouteMap := prevState.RerouteMap
@@ -232,4 +278,3 @@ func UpdateNetwork(prevState State, policyInput Policy) State {
 	prevState.Graph = network
 	return prevState
 }
-
