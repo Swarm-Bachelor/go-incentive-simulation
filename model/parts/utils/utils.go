@@ -75,65 +75,78 @@ func isThresholdFailed(firstNodeId int, secondNodeId int, chunkId int, g *Graph)
 	return false
 }
 
+type ResultStruct struct {
+	thresholdFailed bool
+	accessFailed    bool
+	nextNodeId      int
+	payNextId       int
+	thresholdList   []Threshold
+	distance        int
+}
+
 func getNext(firstNodeId int, chunkId int, graph *Graph, mainOriginatorId int, prevNodePaid bool, rerouteMap RerouteMap) (int, int, []Threshold, bool, bool, Payment, bool) {
-	var nextNodeId int
-	var payNextId int
 	var thresholdList []Threshold
 	var thresholdFailed bool
 	var accessFailed bool
 	var payment Payment
 	resultInt := 1
 	lastDistance := firstNodeId ^ chunkId
+	payDist := lastDistance
 	fmt.Printf("\n last distance is : %d, chunk is: %d, first is: %d", lastDistance, chunkId, firstNodeId)
 	fmt.Printf("\n which bucket: %d \n", 16-BitLength(chunkId^firstNodeId))
 
-	currDist := lastDistance
-	payDist := lastDistance
-
+	resultChan := make(chan ResultStruct)
 	firstNode := graph.NodesMap[firstNodeId]
 
-	for _, adj := range firstNode.AdjIds {
-		for _, nodeId := range adj {
-			dist := nodeId ^ chunkId
-			if BitLength(dist) >= BitLength(lastDistance) {
-				continue
-			}
-			if !isThresholdFailed(firstNodeId, nodeId, chunkId, graph) {
-				thresholdFailed = false
-				// Could probably clean this one up, but keeping it close to original for now
-				if dist < currDist {
-					if Constants.IsRetryWithAnotherPeer() {
-						_, ok := rerouteMap[mainOriginatorId]
-						if ok {
-							allExceptLast := len(rerouteMap[mainOriginatorId]) - 1
-							if Contains(rerouteMap[mainOriginatorId][:allExceptLast], nodeId) {
-								continue
+	for _, curAdj := range firstNode.AdjIds {
+		adj := curAdj
+		// Creates a goroutine for every item in a nodes adj list and searches for the closest to the chunk
+		go func([]int) {
+			resultStruct := ResultStruct{}
+			for _, nodeId := range adj {
+				dist := nodeId ^ chunkId
+				if BitLength(dist) >= BitLength(lastDistance) {
+					continue
+				}
+				if !isThresholdFailed(firstNodeId, nodeId, chunkId, graph) {
+					resultStruct.thresholdFailed = false
+					// Could probably clean this one up, but keeping it close to original for now
+					if dist < resultStruct.distance {
+						if Constants.IsRetryWithAnotherPeer() {
+							_, ok := rerouteMap[mainOriginatorId]
+							if ok {
+								allExceptLast := len(rerouteMap[mainOriginatorId]) - 1
+								if Contains(rerouteMap[mainOriginatorId][:allExceptLast], nodeId) {
+									continue
+								} else {
+									resultStruct.distance = dist
+									resultStruct.nextNodeId = nodeId
+								}
 							} else {
-								currDist = dist
-								nextNodeId = nodeId
+								resultStruct.distance = dist
+								resultStruct.nextNodeId = nodeId
 							}
 						} else {
-							currDist = dist
-							nextNodeId = nodeId
+							resultStruct.distance = dist
+							resultStruct.nextNodeId = nodeId
 						}
-					} else {
-						currDist = dist
-						nextNodeId = nodeId
 					}
-				}
-			} else {
-				thresholdFailed = true
-				if Constants.GetPaymentEnabled() {
-					if dist < payDist {
-						payDist = dist
-						payNextId = nodeId
+				} else {
+					resultStruct.thresholdFailed = true
+					if Constants.GetPaymentEnabled() {
+						if dist < payDist {
+							payDist = dist
+							resultStruct.payNextId = nodeId
+						}
 					}
+					listItem := Threshold{firstNodeId, nodeId}
+					resultStruct.thresholdList = append(thresholdList, listItem)
 				}
-				listItem := Threshold{firstNodeId, nodeId}
-				thresholdList = append(thresholdList, listItem)
 			}
-		}
+			resultChan <- resultStruct
+		}(adj)
 	}
+
 	if nextNodeId != 0 {
 		thresholdFailed = false
 		accessFailed = false
