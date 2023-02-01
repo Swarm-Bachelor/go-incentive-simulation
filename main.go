@@ -14,11 +14,11 @@ import (
 func MakePolicyOutput(wg *sync.WaitGroup, mutex *sync.Mutex, stateStruct *StateStruct, policyCh chan Policy, StateCh chan State) {
 	fmt.Println("start of make initial policy")
 	defer wg.Done()
-	//state := stateArray[0]
+	state := stateStruct.curState
 	for i := 0; i < iterations; i++ {
-		state := <-StateCh
+		//state := <-StateCh
 		//mutex.Lock()
-		//state = stateArray[len(stateArray)-1]
+		state = stateStruct.stateArr[len(stateStruct.stateArr)-1]
 		curState := State{
 			Graph:                   state.Graph,
 			Originators:             state.Originators,
@@ -40,7 +40,7 @@ func MakePolicyOutput(wg *sync.WaitGroup, mutex *sync.Mutex, stateStruct *StateS
 			Found:                found,
 			Route:                route,
 			ThresholdFailedLists: thresholdFailed,
-			OriginatorIndex:      state.OriginatorIndex,
+			OriginatorIndex:      curState.OriginatorIndex,
 			AccessFailed:         accessFailed,
 			PaymentList:          paymentsList,
 		}
@@ -82,7 +82,7 @@ func UpdateState(wg *sync.WaitGroup, mutex *sync.Mutex, statestruct *StateStruct
 		newState = UpdateRouteListAndFlush(newState, policyOutput)
 		newState = UpdateNetwork(newState, policyOutput)
 
-		stateCh <- newState
+		//stateCh <- newState
 
 		//mutex.Lock()
 		statestruct.curState = newState
@@ -92,7 +92,7 @@ func UpdateState(wg *sync.WaitGroup, mutex *sync.Mutex, statestruct *StateStruct
 }
 
 const iterations = 250000
-const numWorkers = 10
+const numWorkers = 1
 
 type StateStruct = struct {
 	stateArr []State
