@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"sync"
 )
 
 // Graph structure, node Ids in array and edges in map
@@ -11,6 +12,7 @@ type Graph struct {
 	NodeIds  []int
 	Edges    map[int][]Edge
 	NodesMap map[int]*Node
+	Mutex    *sync.Mutex
 }
 
 // Edge that connects to Nodes with attributes about the connection

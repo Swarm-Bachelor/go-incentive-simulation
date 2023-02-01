@@ -90,7 +90,7 @@ func getNext(firstNodeId int, chunkId int, graph *Graph, mainOriginatorId int, p
 	currDist := lastDistance
 	payDist := lastDistance
 
-	firstNode := graph.NodesMap[firstNodeId]
+	firstNode := graph.GetNode(firstNodeId)
 
 	for _, adj := range firstNode.AdjIds {
 		for _, nodeId := range adj {
@@ -257,6 +257,7 @@ func ConsumeTask(request *Request, graph *Graph, respNodes []int, rerouteMap Rer
 	} else {
 		counter := 0
 	out:
+		// originatorId change to the current node throughout the searching for the chunk
 		for !Contains(respNodes, originatorId) {
 			counter++
 			fmt.Printf("\n orig: %d, chunk_id: %d", mainOriginatorId, chunkId)
@@ -280,7 +281,7 @@ func ConsumeTask(request *Request, graph *Graph, respNodes []int, rerouteMap Rer
 					break out
 				}
 				if Constants.IsCacheEnabled() {
-					nextNode := graph.NodesMap[nextNodeId]
+					nextNode := graph.GetNode(nextNodeId)
 					chunkMap, ok := cacheMap[nextNode]
 					if ok {
 						if chunkMap[chunkId] > 1 {
