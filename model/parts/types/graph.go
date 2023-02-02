@@ -6,10 +6,11 @@ import (
 
 // Graph structure, node Ids in array and edges in map
 type Graph struct {
-	Network *Network
-	Nodes   []*Node
-	NodeIds []int
-	Edges   map[int][]Edge
+	Network  *Network
+	Nodes    []*Node
+	NodeIds  []int
+	Edges    map[int][]Edge
+	NodesMap map[int]*Node
 }
 
 // Edge that connects to Nodes with attributes about the connection
@@ -69,7 +70,7 @@ func (g *Graph) GetEdgeData(fromNodeId int, toNodeId int) EdgeAttrs {
 
 // GetNode getNode will return a node point if exists or return nil
 func (g *Graph) GetNode(nodeId int) *Node {
-	node, ok := g.Network.Nodes[nodeId]
+	node, ok := g.NodesMap[nodeId]
 	if ok {
 		return node
 	}
@@ -97,9 +98,9 @@ func ContainsEdge(v []Edge, edge Edge) bool {
 func (g *Graph) Print() {
 	for _, v := range g.Nodes {
 		fmt.Printf("%d : ", v.Id)
-		for _, i := range v.Adj {
+		for _, i := range v.AdjIds {
 			for _, v := range i {
-				fmt.Printf("%d ", v.Id)
+				fmt.Printf("%d ", v)
 			}
 		}
 		fmt.Println()

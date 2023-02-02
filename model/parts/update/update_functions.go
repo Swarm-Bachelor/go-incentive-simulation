@@ -72,7 +72,63 @@ func UpdateRouteListAndFlush(prevState State, policyInput Policy) State {
 }
 
 // TODO: Implement this function
+// Does not work with current type of cacheMap
 func UpdateCacheMap(prevState State, policyInput Policy) State {
+	cacheMap := prevState.CacheStruct.CacheMap
+	cacheHits := prevState.CacheStruct.CacheHits
+	g := prevState.Graph
+	chunkAddr := 0
+	//val := make(map[int]int)
+
+	if Constants.IsCacheEnabled() {
+		route := policyInput.Route
+		if Contains(route, -3) {
+			chunkAddr = route[len(route)-2]
+		} else {
+			chunkAddr = route[len(route)-1]
+		}
+		if !Contains(route, -1) && !Contains(route, -2) {
+			if Contains(route, -3) {
+				for i := 0; i < len(route)-3; i++ {
+					routeId := g.GetNode(route[i])
+					cacheHits++
+					if _, ok := cacheMap[routeId]; ok {
+						val := cacheMap[routeId]
+
+						if _, ok := val[chunkAddr]; ok {
+							val[chunkAddr]++
+						} else {
+							val[chunkAddr] = 1
+						}
+					} else {
+						cacheMap[routeId] = map[int]int{}
+						val := cacheMap[routeId]
+						val[chunkAddr] = 1
+					}
+				}
+			} else {
+				for i := 0; i < len(route)-2; i++ {
+					routeId := g.GetNode(route[i])
+					cacheHits++
+					if _, ok := cacheMap[routeId]; ok {
+						val := cacheMap[routeId]
+
+						if _, ok := val[chunkAddr]; ok {
+							val[chunkAddr]++
+						} else {
+							val[chunkAddr] = 1
+						}
+					} else {
+						cacheMap[routeId] = map[int]int{}
+						val := cacheMap[routeId]
+						val[chunkAddr] = 1
+					}
+				}
+			}
+		}
+	}
+	prevState.CacheStruct.CacheMap = cacheMap
+	prevState.CacheStruct.CacheHits = cacheHits
 	return prevState
 }
 
@@ -224,8 +280,8 @@ func UpdateNetwork(prevState State, policyInput Policy) State {
 			for _, thresholdFailedL := range thresholdFailedLists {
 				if len(thresholdFailedL) > 0 {
 					for _, couple := range thresholdFailedL {
-						requesterNode := couple[0].Id
-						providerNode := couple[1].Id
+						requesterNode := couple[0]
+						providerNode := couple[1]
 						edgeData1 := network.GetEdgeData(requesterNode, providerNode)
 						passedTime := (currTimeStep - edgeData1.Last) / Constants.GetRequestsPerSecond()
 						if passedTime > 0 {

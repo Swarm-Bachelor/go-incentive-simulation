@@ -33,13 +33,28 @@ func main() {
 		policyOutput := MakePolicyOutput(state)
 		state = UpdatePendingMap(state, policyOutput)
 		state = UpdateRerouteMap(state, policyOutput)
+		state = UpdateCacheMap(state, policyOutput)
 		state = UpdateOriginatorIndex(state, policyOutput)
 		state = UpdateSuccessfulFound(state, policyOutput)
 		state = UpdateFailedRequestsThreshold(state, policyOutput)
 		state = UpdateFailedRequestsAccess(state, policyOutput)
 		state = UpdateRouteListAndFlush(state, policyOutput)
 		state = UpdateNetwork(state, policyOutput)
-		stateArray = append(stateArray, state)
+
+		curState := State{
+			Graph:                   state.Graph,
+			Originators:             state.Originators,
+			NodesId:                 state.NodesId,
+			RouteLists:              state.RouteLists,
+			PendingMap:              state.PendingMap,
+			RerouteMap:              state.RerouteMap,
+			CacheStruct:             state.CacheStruct,
+			OriginatorIndex:         state.OriginatorIndex,
+			SuccessfulFound:         state.SuccessfulFound,
+			FailedRequestsThreshold: state.FailedRequestsThreshold,
+			FailedRequestsAccess:    state.FailedRequestsAccess,
+			TimeStep:                state.TimeStep}
+		stateArray = append(stateArray, curState)
 		//PrintState(state)
 	}
 	PrintState(state)
@@ -52,10 +67,11 @@ func PrintState(state State) {
 	fmt.Println("SuccessfulFound: ", state.SuccessfulFound)
 	fmt.Println("FailedRequestsThreshold: ", state.FailedRequestsThreshold)
 	fmt.Println("FailedRequestsAccess: ", state.FailedRequestsAccess)
+	fmt.Println("CacheHits:", state.CacheStruct.CacheHits)
 	fmt.Println("TimeStep: ", state.TimeStep)
 	fmt.Println("OriginatorIndex: ", state.OriginatorIndex)
 	fmt.Println("PendingMap: ", state.PendingMap)
 	fmt.Println("RerouteMap: ", state.RerouteMap)
 	//fmt.Println("RouteLists: ", state.RouteLists)
-	fmt.Println("CacheListMap: ", state.CacheListMap)
+	//fmt.Println("CacheMap: ", state.CacheStruct.CacheMap)
 }

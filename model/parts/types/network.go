@@ -16,7 +16,7 @@ type Network struct {
 type Node struct {
 	Network    *Network
 	Id         int
-	Adj        [][]*Node
+	AdjIds     [][]int
 	storageSet []int
 	cacheSet   []int
 	canPay     bool
@@ -69,7 +69,7 @@ func (network *Network) node(value int) *Node {
 	res := Node{
 		Network:    network,
 		Id:         value,
-		Adj:        make([][]*Node, network.Bits),
+		AdjIds:     make([][]int, network.Bits),
 		storageSet: []int{0},
 		cacheSet:   []int{0},
 		canPay:     true,
@@ -90,21 +90,25 @@ func (node *Node) add(other *Node) bool {
 	if node.Network == nil || node.Network != other.Network || node == other {
 		return false
 	}
-	if node.Adj == nil {
-		node.Adj = make([][]*Node, node.Network.Bits)
+	if node.AdjIds == nil {
+		node.AdjIds = make([][]int, node.Network.Bits)
 	}
-	if other.Adj == nil {
-		other.Adj = make([][]*Node, other.Network.Bits)
+	if other.AdjIds == nil {
+		other.AdjIds = make([][]int, other.Network.Bits)
 	}
 	bit := node.Network.Bits - BitLength(node.Id^other.Id)
 	if bit < 0 || bit >= node.Network.Bits {
 		return false
 	}
-	isDup := ContainsNode(node.Adj[bit], other) || ContainsNode(other.Adj[bit], node)
-	if len(node.Adj[bit]) < node.Network.Bin && len(other.Adj[bit]) < node.Network.Bin && !isDup {
-		node.Adj[bit] = append(node.Adj[bit], other)
-		other.Adj[bit] = append(other.Adj[bit], node)
+	isDup := Contains(node.AdjIds[bit], other.Id) || Contains(other.AdjIds[bit], node.Id)
+	if len(node.AdjIds[bit]) < node.Network.Bin && len(other.AdjIds[bit]) < node.Network.Bin && !isDup {
+		node.AdjIds[bit] = append(node.AdjIds[bit], other.Id)
+		other.AdjIds[bit] = append(other.AdjIds[bit], node.Id)
 		return true
 	}
 	return false
+}
+
+func (node *Node) IsNil() bool {
+	return node.Id == 0
 }

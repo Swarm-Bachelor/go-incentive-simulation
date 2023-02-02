@@ -31,39 +31,26 @@ func Contains[T comparable](elems []T, value T) bool {
 
 func BinarySearchClosest(arr []int, target int, n int) []int {
 	left, right := 0, len(arr)-1
+	mid := 0
 	for left <= right {
-		mid := (left + right) / 2
+		mid = (left + right) / 2
 		curNodeId := arr[mid]
-		if curNodeId > target-n && curNodeId < target+n {
-			return findClosest(arr, target, mid, n)
+		if curNodeId == target {
+			//if curNodeId > target-(n/2) && curNodeId < target+(n/2) {
+			break
 		} else if curNodeId < target {
 			left = mid + 1
 		} else {
 			right = mid - 1
 		}
 	}
-	return findClosest(arr, target, left, n)
-}
-
-func findClosest(arr []int, target int, index int, n int) []int {
-	result := make([]int, 0, n)
-	left, right := index-1, index+1
-	for left >= 0 && right < len(arr) && len(result) < n {
-		if target-arr[left] < arr[right]-target {
-			result = append(result, arr[left])
-			left--
-		} else {
-			result = append(result, arr[right])
-			right++
-		}
+	left = mid - n
+	if left < 0 {
+		left = 0
 	}
-	for left >= 0 && len(result) < n {
-		result = append(result, arr[left])
-		left--
+	right = mid + n
+	if right > len(arr) {
+		right = len(arr)
 	}
-	for right < len(arr) && len(result) < n {
-		result = append(result, arr[right])
-		right++
-	}
-	return result
+	return arr[left:right]
 }

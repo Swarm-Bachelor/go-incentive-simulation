@@ -21,6 +21,7 @@ func MakeInitialState(path string) State {
 	if err != nil {
 		fmt.Println("create graph network returned an error: ", err)
 	}
+	cacheStruct := CacheStruct{CacheHits: 0, CacheMap: make(CacheMap, 0)}
 	initialState := State{
 		Graph:                   graph,
 		Originators:             CreateDownloadersList(graph),
@@ -28,7 +29,7 @@ func MakeInitialState(path string) State {
 		RouteLists:              []Route{},
 		PendingMap:              make(PendingMap, 0),
 		RerouteMap:              make(RerouteMap, 0),
-		CacheListMap:            make(CacheListMap, 0),
+		CacheStruct:             cacheStruct,
 		OriginatorIndex:         0,
 		SuccessfulFound:         0,
 		FailedRequestsThreshold: 0,

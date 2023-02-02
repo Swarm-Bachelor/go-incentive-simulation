@@ -43,8 +43,8 @@ var Constants = constant{
 	chunks:                           10000,
 	requestsPerSecond:                12500,
 	thresholdEnabled:                 true,
-	forgivenessEnabled:               false,
-	paymentEnabled:                   false,
+	forgivenessEnabled:               true,
+	paymentEnabled:                   true,
 	maxPOCheckEnabled:                true,
 	waitingEnabled:                   false,
 	onlyOriginatorPays:               false,
@@ -52,7 +52,7 @@ var Constants = constant{
 	payIfOrigPays:                    false,
 	forwarderPayForceOriginatorToPay: false,
 	retryWithAnotherPeer:             false,
-	cacheIsEnabled:                   false,
+	cacheIsEnabled:                   true,
 	adjustableThreshold:              false,
 }
 

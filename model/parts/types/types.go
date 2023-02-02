@@ -1,16 +1,20 @@
 package types
 
 type Request struct {
-	Originator *Node
-	ChunkId    int
+	OriginatorId int
+	ChunkId      int
 }
 
 type PendingMap map[int]int
 
 type RerouteMap map[int][]int
 
-type CacheListMap map[*Node][]map[int]int
+type CacheMap map[*Node]map[int]int
 
+type CacheStruct struct {
+	CacheHits int
+	CacheMap  CacheMap
+}
 type Route []int
 
 type Payment struct {
@@ -20,7 +24,7 @@ type Payment struct {
 	IsOriginator bool
 }
 
-type Threshold [2]*Node
+type Threshold [2]int
 
 type State struct {
 	Graph                   *Graph
@@ -29,7 +33,7 @@ type State struct {
 	RouteLists              []Route
 	PendingMap              PendingMap
 	RerouteMap              RerouteMap
-	CacheListMap            CacheListMap
+	CacheStruct             CacheStruct
 	OriginatorIndex         int
 	SuccessfulFound         int
 	FailedRequestsThreshold int
