@@ -6,7 +6,6 @@ import (
 	. "go-incentive-simulation/model/parts/types"
 	. "go-incentive-simulation/model/parts/update"
 	. "go-incentive-simulation/model/state"
-	"sync"
 	"time"
 	//. "go-incentive-simulation/model/constants"
 )
@@ -25,12 +24,32 @@ func MakePolicyOutputOrig(state State) Policy {
 	return policy
 }
 
-func MakePolicyOutput(policyCh chan PolicyStruct, stateCh chan State, allDone chan struct{}) {
+func ProduceSendRequest(policyCh chan Policy, stateCh chan State, doneDoneCh chan struct{}) {
+	for true {
+		select {
+		case <-doneDoneCh:
+			return
+		case state := <-stateCh:
+			found, route, thresholdFailed, accessFailed, paymentsList := SendRequest(&state)
+			policy := Policy{
+				Found:                found,
+				Route:                route,
+				ThresholdFailedLists: thresholdFailed,
+				OriginatorIndex:      state.OriginatorIndex,
+				AccessFailed:         accessFailed,
+				PaymentList:          paymentsList,
+			}
+			policyCh <- policy
+		default:
+		}
+	}
+}
+
+func MakePolicyOutput(policyStructCh chan PolicyStruct, policyCh chan Policy, allDone chan struct{}) {
 	fmt.Println("start of make initial policy")
-	var state State
-	var wg sync.WaitGroup
+	var policy Policy
+
 	for i := 0; i < iterations/numGoRoutines; i++ {
-		state = <-stateCh
 		policyStruct := PolicyStruct{
 			Founds:                   make([]bool, numGoRoutines),
 			Routes:                   make([]Route, numGoRoutines),
@@ -39,40 +58,29 @@ func MakePolicyOutput(policyCh chan PolicyStruct, stateCh chan State, allDone ch
 			AccessFails:              make([]bool, numGoRoutines),
 			PaymentListList:          make([][]Payment, numGoRoutines),
 		}
-		wg.Add(numGoRoutines)
-		for j := 0; j < numGoRoutines; j++ {
-			loop := j
-			go func(int) {
-				found, route, thresholdFailed, accessFailed, paymentsList := SendRequest(&state)
-				policy := Policy{
-					Found:                found,
-					Route:                route,
-					ThresholdFailedLists: thresholdFailed,
-					OriginatorIndex:      state.OriginatorIndex,
-					AccessFailed:         accessFailed,
-					PaymentList:          paymentsList,
-				}
+		loop := 0
+		for policy = range policyCh {
 
-				policyStruct.Founds[loop] = policy.Found
-				policyStruct.Routes[loop] = policy.Route
-				policyStruct.ThresholdFailedListsList[loop] = policy.ThresholdFailedLists
-				policyStruct.OriginatorIndices[loop] = policy.OriginatorIndex
-				policyStruct.AccessFails[loop] = policy.AccessFailed
-				policyStruct.PaymentListList[loop] = policy.PaymentList
-
-				wg.Done()
-			}(loop)
+			policyStruct.Founds[loop] = policy.Found
+			policyStruct.Routes[loop] = policy.Route
+			policyStruct.ThresholdFailedListsList[loop] = policy.ThresholdFailedLists
+			policyStruct.OriginatorIndices[loop] = policy.OriginatorIndex
+			policyStruct.AccessFails[loop] = policy.AccessFailed
+			policyStruct.PaymentListList[loop] = policy.PaymentList
+			loop++
+			if loop == numGoRoutines {
+				break
+			}
 		}
-		wg.Wait()
-		policyCh <- policyStruct
+		policyStructCh <- policyStruct
 	}
 	allDone <- struct{}{}
 }
 
-func UpdateState(policyCh chan PolicyStruct, stateCh chan State, firstState State) {
+func UpdateState(policyStructCh chan PolicyStruct, stateCh chan State, firstState State) {
 	state := firstState
 
-	for policyStruct := range policyCh {
+	for policyStruct := range policyStructCh {
 
 		state = UpdatePendingMap(state, policyStruct)
 		state = UpdateRerouteMap(state, policyStruct)
@@ -91,7 +99,7 @@ func UpdateState(policyCh chan PolicyStruct, stateCh chan State, firstState Stat
 }
 
 const iterations = 250000
-const numGoRoutines = 10
+const numGoRoutines = 50
 
 func main() {
 
@@ -100,18 +108,27 @@ func main() {
 	//stateArray := []State{state}
 
 	//wg := &sync.WaitGroup{}
-	policyCh := make(chan PolicyStruct, numGoRoutines)
+	policyStructCh := make(chan PolicyStruct, numGoRoutines)
+	policyCh := make(chan Policy, numGoRoutines)
 	stateCh := make(chan State, numGoRoutines)
-	allDone := make(chan struct{})
+	allDoneCh := make(chan struct{})
+	doneDoneCh := make(chan struct{})
+
+	go MakePolicyOutput(policyStructCh, policyCh, allDoneCh)
+	go UpdateState(policyStructCh, stateCh, state)
 
 	for i := 0; i < numGoRoutines; i++ {
-		go MakePolicyOutput(policyCh, stateCh, allDone)
+		go ProduceSendRequest(policyCh, stateCh, doneDoneCh)
 	}
-	go UpdateState(policyCh, stateCh, state)
+	for i := 0; i < numGoRoutines; i++ {
+		stateCh <- state
+	}
 
-	stateCh <- state
+	<-allDoneCh
 
-	<-allDone
+	for i := 0; i < numGoRoutines; i++ {
+		doneDoneCh <- struct{}{}
+	}
 
 	state = <-stateCh
 	//curState := State{
