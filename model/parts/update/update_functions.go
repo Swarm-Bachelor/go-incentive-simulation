@@ -191,109 +191,113 @@ func UpdateNetwork(prevState State, policyStruct PolicyStruct) State {
 	network := prevState.Graph
 	currTimeStep := prevState.TimeStep + 1
 	for i, route := range policyStruct.Routes {
-		paymentsList := policyStruct.PaymentListList[i]
+		if len(policyStruct.PaymentListList) > i {
+			paymentsList := policyStruct.PaymentListList[i]
 
-		if Constants.GetPaymentEnabled() {
-			for _, payment := range paymentsList {
-				var p Payment
-				if payment != p {
-					if payment.FirstNodeId != -1 {
-						edgeData1 := network.GetEdgeData(payment.FirstNodeId, payment.PayNextId)
-						edgeData2 := network.GetEdgeData(payment.PayNextId, payment.FirstNodeId)
-						price := PeerPriceChunk(payment.PayNextId, payment.ChunkId)
-						val := edgeData1.A2B - edgeData2.A2B + price
-						if Constants.IsPayOnlyForCurrentRequest() {
-							val = price
-						}
-						if val < 0 {
-							continue
-						} else {
-							if !Constants.IsPayOnlyForCurrentRequest() {
-								edgeData1.A2B = 0
-								edgeData2.A2B = 0
+			if Constants.GetPaymentEnabled() {
+				for _, payment := range paymentsList {
+					var p Payment
+					if payment != p {
+						if payment.FirstNodeId != -1 {
+							edgeData1 := network.GetEdgeData(payment.FirstNodeId, payment.PayNextId)
+							edgeData2 := network.GetEdgeData(payment.PayNextId, payment.FirstNodeId)
+							price := PeerPriceChunk(payment.PayNextId, payment.ChunkId)
+							val := edgeData1.A2B - edgeData2.A2B + price
+							if Constants.IsPayOnlyForCurrentRequest() {
+								val = price
 							}
-						}
-						fmt.Println("Payment from ", payment.FirstNodeId, " to ", payment.PayNextId, " for chunk ", payment.ChunkId, " with price ", val)
-					} else {
-						edgeData1 := network.GetEdgeData(payment.FirstNodeId, payment.PayNextId)
-						edgeData2 := network.GetEdgeData(payment.PayNextId, payment.FirstNodeId)
-						price := PeerPriceChunk(payment.PayNextId, payment.ChunkId)
-						val := edgeData1.A2B - edgeData2.A2B + price
-						if Constants.IsPayOnlyForCurrentRequest() {
-							val = price
-						}
-						if val < 0 {
-							continue
-						} else {
-							if !Constants.IsPayOnlyForCurrentRequest() {
-								edgeData1.A2B = 0
-								edgeData2.A2B = 0
-							}
-						}
-						fmt.Println("-1", "Payment from ", payment.FirstNodeId, " to ", payment.PayNextId, " for chunk ", payment.ChunkId, " with price ", val) //Means that the first one is the originator
-					}
-				}
-			}
-		}
-		if !Contains(route, -1) && !Contains(route, -2) {
-			routeWithPrice := []int{}
-			if Contains(route, -3) {
-				chunkId := route[len(route)-2]
-				for i := 0; i < len(route)-3; i++ {
-					requesterNode := route[i]
-					providerNode := route[i+1]
-					price := PeerPriceChunk(providerNode, chunkId)
-					edgeData1 := network.GetEdgeData(requesterNode, providerNode)
-					edgeData1.A2B += price
-					if Constants.GetMaxPOCheckEnabled() {
-						routeWithPrice = append(routeWithPrice, requesterNode)
-						routeWithPrice = append(routeWithPrice, price)
-						routeWithPrice = append(routeWithPrice, providerNode)
-					}
-				}
-				if Constants.GetMaxPOCheckEnabled() {
-					fmt.Println("Route with price ", routeWithPrice)
-				}
-			} else {
-				chunkId := route[len(route)-1]
-				for i := 0; i < len(route)-2; i++ {
-					requesterNode := route[i]
-					providerNode := route[i+1]
-					price := PeerPriceChunk(providerNode, chunkId)
-					edgeData1 := network.GetEdgeData(requesterNode, providerNode)
-					edgeData1.A2B += price
-					if Constants.GetMaxPOCheckEnabled() {
-						routeWithPrice = append(routeWithPrice, requesterNode)
-						routeWithPrice = append(routeWithPrice, price)
-						routeWithPrice = append(routeWithPrice, providerNode)
-					}
-				}
-				if Constants.GetMaxPOCheckEnabled() {
-					fmt.Println("Route with price ", routeWithPrice)
-				}
-			}
-		}
-		if Constants.GetThresholdEnabled() && Constants.IsForgivenessEnabled() {
-			thresholdFailedLists := policyStruct.ThresholdFailedListsList[i]
-			if len(thresholdFailedLists) > 0 {
-				for _, thresholdFailedL := range thresholdFailedLists {
-					if len(thresholdFailedL) > 0 {
-						for _, couple := range thresholdFailedL {
-							requesterNode := couple[0]
-							providerNode := couple[1]
-							edgeData1 := network.GetEdgeData(requesterNode, providerNode)
-							passedTime := (currTimeStep - edgeData1.Last) / Constants.GetRequestsPerSecond()
-							if passedTime > 0 {
-								refreshRate := Constants.GetRefreshRate()
-								if Constants.IsAdjustableThreshold() {
-									refreshRate = int(math.Ceil(float64(edgeData1.Threshold / 2)))
-								}
-								removedDeptAmount := passedTime * refreshRate
-								edgeData1.A2B -= removedDeptAmount
-								if edgeData1.A2B < 0 {
+							if val < 0 {
+								continue
+							} else {
+								if !Constants.IsPayOnlyForCurrentRequest() {
 									edgeData1.A2B = 0
+									edgeData2.A2B = 0
 								}
-								edgeData1.Last = currTimeStep
+							}
+							fmt.Println("Payment from ", payment.FirstNodeId, " to ", payment.PayNextId, " for chunk ", payment.ChunkId, " with price ", val)
+						} else {
+							edgeData1 := network.GetEdgeData(payment.FirstNodeId, payment.PayNextId)
+							edgeData2 := network.GetEdgeData(payment.PayNextId, payment.FirstNodeId)
+							price := PeerPriceChunk(payment.PayNextId, payment.ChunkId)
+							val := edgeData1.A2B - edgeData2.A2B + price
+							if Constants.IsPayOnlyForCurrentRequest() {
+								val = price
+							}
+							if val < 0 {
+								continue
+							} else {
+								if !Constants.IsPayOnlyForCurrentRequest() {
+									edgeData1.A2B = 0
+									edgeData2.A2B = 0
+								}
+							}
+							fmt.Println("-1", "Payment from ", payment.FirstNodeId, " to ", payment.PayNextId, " for chunk ", payment.ChunkId, " with price ", val) //Means that the first one is the originator
+						}
+					}
+				}
+			}
+			if !Contains(route, -1) && !Contains(route, -2) {
+				routeWithPrice := []int{}
+				if Contains(route, -3) {
+					chunkId := route[len(route)-2]
+					for i := 0; i < len(route)-3; i++ {
+						requesterNode := route[i]
+						providerNode := route[i+1]
+						price := PeerPriceChunk(providerNode, chunkId)
+						edgeData1 := network.GetEdgeData(requesterNode, providerNode)
+						edgeData1.A2B += price
+						if Constants.GetMaxPOCheckEnabled() {
+							routeWithPrice = append(routeWithPrice, requesterNode)
+							routeWithPrice = append(routeWithPrice, price)
+							routeWithPrice = append(routeWithPrice, providerNode)
+						}
+					}
+					if Constants.GetMaxPOCheckEnabled() {
+						fmt.Println("Route with price ", routeWithPrice)
+					}
+				} else {
+					chunkId := route[len(route)-1]
+					for i := 0; i < len(route)-2; i++ {
+						requesterNode := route[i]
+						providerNode := route[i+1]
+						price := PeerPriceChunk(providerNode, chunkId)
+						edgeData1 := network.GetEdgeData(requesterNode, providerNode)
+						edgeData1.A2B += price
+						if Constants.GetMaxPOCheckEnabled() {
+							routeWithPrice = append(routeWithPrice, requesterNode)
+							routeWithPrice = append(routeWithPrice, price)
+							routeWithPrice = append(routeWithPrice, providerNode)
+						}
+					}
+					if Constants.GetMaxPOCheckEnabled() {
+						fmt.Println("Route with price ", routeWithPrice)
+					}
+				}
+			}
+			if Constants.GetThresholdEnabled() && Constants.IsForgivenessEnabled() {
+				if len(policyStruct.ThresholdFailedListsList) > i {
+					thresholdFailedLists := policyStruct.ThresholdFailedListsList[i]
+					if len(thresholdFailedLists) > 0 {
+						for _, thresholdFailedL := range thresholdFailedLists {
+							if len(thresholdFailedL) > 0 {
+								for _, couple := range thresholdFailedL {
+									requesterNode := couple[0]
+									providerNode := couple[1]
+									edgeData1 := network.GetEdgeData(requesterNode, providerNode)
+									passedTime := (currTimeStep - edgeData1.Last) / Constants.GetRequestsPerSecond()
+									if passedTime > 0 {
+										refreshRate := Constants.GetRefreshRate()
+										if Constants.IsAdjustableThreshold() {
+											refreshRate = int(math.Ceil(float64(edgeData1.Threshold / 2)))
+										}
+										removedDeptAmount := passedTime * refreshRate
+										edgeData1.A2B -= removedDeptAmount
+										if edgeData1.A2B < 0 {
+											edgeData1.A2B = 0
+										}
+										edgeData1.Last = currTimeStep
+									}
+								}
 							}
 						}
 					}

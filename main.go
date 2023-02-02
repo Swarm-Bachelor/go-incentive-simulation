@@ -6,6 +6,7 @@ import (
 	. "go-incentive-simulation/model/parts/types"
 	. "go-incentive-simulation/model/parts/update"
 	. "go-incentive-simulation/model/state"
+	"sync"
 	"time"
 	//. "go-incentive-simulation/model/constants"
 )
@@ -29,20 +30,36 @@ func main() {
 	state := MakeInitialState("./data/nodes_data_8_10000.txt")
 	stateArray := []State{state}
 	iterations := 250000
-	for i := 0; i < iterations; {
-		policyStruct := PolicyStruct{}
-		for j := 0; j < 5; j++ {
-			policyOutput := MakePolicyOutput(state)
-
-			policyStruct.Founds = append(policyStruct.Founds, policyOutput.Found)
-			policyStruct.Routes = append(policyStruct.Routes, policyOutput.Route)
-			policyStruct.ThresholdFailedListsList = append(policyStruct.ThresholdFailedListsList, policyOutput.ThresholdFailedLists)
-			policyStruct.OriginatorIndices = append(policyStruct.OriginatorIndices, policyOutput.OriginatorIndex)
-			policyStruct.AccessFails = append(policyStruct.AccessFails, policyOutput.AccessFailed)
-			policyStruct.PaymentListList = append(policyStruct.PaymentListList, policyOutput.PaymentList)
-			i++
+	numGoRoutines := 100
+	for i := 0; i < iterations/numGoRoutines; i++ {
+		policyStruct := PolicyStruct{
+			Founds:                   make([]bool, numGoRoutines),
+			Routes:                   make([]Route, numGoRoutines),
+			ThresholdFailedListsList: make([][][]Threshold, numGoRoutines),
+			OriginatorIndices:        make([]int, numGoRoutines),
+			AccessFails:              make([]bool, numGoRoutines),
+			PaymentListList:          make([][]Payment, numGoRoutines),
 		}
-		
+		var wg sync.WaitGroup
+		wg.Add(numGoRoutines)
+		fmt.Println("before PolicyOutput: ", time.Since(start))
+		for j := 0; j < numGoRoutines; j++ {
+			loop := j
+			go func(int) {
+				policyOutput := MakePolicyOutput(state)
+
+				policyStruct.Founds[loop] = policyOutput.Found
+				policyStruct.Routes[loop] = policyOutput.Route
+				policyStruct.ThresholdFailedListsList[loop] = policyOutput.ThresholdFailedLists
+				policyStruct.OriginatorIndices[loop] = policyOutput.OriginatorIndex
+				policyStruct.AccessFails[loop] = policyOutput.AccessFailed
+				policyStruct.PaymentListList[loop] = policyOutput.PaymentList
+				wg.Done()
+			}(loop)
+		}
+		wg.Wait()
+		fmt.Println("middle: ", time.Since(start))
+
 		state = UpdatePendingMap(state, policyStruct)
 		state = UpdateRerouteMap(state, policyStruct)
 		state = UpdateCacheMap(state, policyStruct)
@@ -52,6 +69,8 @@ func main() {
 		state = UpdateFailedRequestsAccess(state, policyStruct)
 		state = UpdateRouteListAndFlush(state, policyStruct)
 		state = UpdateNetwork(state, policyStruct)
+
+		fmt.Println("after Updates: ", time.Since(start))
 
 		curState := State{
 			Graph:                   state.Graph,
