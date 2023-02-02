@@ -1,11 +1,13 @@
 package update
 
 import (
+	"encoding/json"
 	"fmt"
 	. "go-incentive-simulation/model/constants"
 	. "go-incentive-simulation/model/general"
 	. "go-incentive-simulation/model/parts/types"
 	. "go-incentive-simulation/model/parts/utils"
+	"io/ioutil"
 	"math"
 )
 
@@ -43,16 +45,29 @@ func UpdateOriginatorIndex(prevState State, policyInput Policy) State {
 	return prevState
 }
 
-// TODO: function convert and dump to file
+func convertAndDumpToFile1(routes []Route, currTimestep int) error {
+	type RouteData struct {
+		Timestep int     `json:"timestep"`
+		Routes   []Route `json:"routes"`
+	}
+	data := RouteData{currTimestep, routes}
+	file, _ := json.Marshal(data)
+	err := ioutil.WriteFile("routes.json", file, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func UpdateRouteListAndFlush(prevState State, policyInput Policy) State {
 	prevState.RouteLists = append(prevState.RouteLists, policyInput.Route)
-	currTimestep := prevState.TimeStep + 1
-	if currTimestep%6250 == 0 {
-		// TODO: call convert_and_dump
+	prevState.TimeStep++
+	if prevState.TimeStep%6250 == 0 {
+		convertAndDumpToFile1(prevState.RouteLists, prevState.TimeStep)
 		prevState.RouteLists = []Route{}
 		return prevState
 	}
+
 	return prevState
 }
 

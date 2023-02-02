@@ -36,6 +36,7 @@ func main() {
 		state = UpdateOriginatorIndex(state, policyOutput)
 		state = UpdateSuccessfulFound(state, policyOutput)
 		state = UpdateFailedRequestsThreshold(state, policyOutput)
+		state = UpdateFailedRequestsAccess(state, policyOutput)
 		state = UpdateRouteListAndFlush(state, policyOutput)
 		state = UpdateNetwork(state, policyOutput)
 		stateArray = append(stateArray, state)
