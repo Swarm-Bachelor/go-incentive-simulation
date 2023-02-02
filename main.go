@@ -29,17 +29,29 @@ func main() {
 	state := MakeInitialState("./data/nodes_data_8_10000.txt")
 	stateArray := []State{state}
 	iterations := 250000
-	for i := 0; i < iterations; i++ {
-		policyOutput := MakePolicyOutput(state)
-		state = UpdatePendingMap(state, policyOutput)
-		state = UpdateRerouteMap(state, policyOutput)
-		state = UpdateCacheMap(state, policyOutput)
-		state = UpdateOriginatorIndex(state, policyOutput)
-		state = UpdateSuccessfulFound(state, policyOutput)
-		state = UpdateFailedRequestsThreshold(state, policyOutput)
-		state = UpdateFailedRequestsAccess(state, policyOutput)
-		state = UpdateRouteListAndFlush(state, policyOutput)
-		state = UpdateNetwork(state, policyOutput)
+	for i := 0; i < iterations; {
+		policyStruct := PolicyStruct{}
+		for j := 0; j < 5; j++ {
+			policyOutput := MakePolicyOutput(state)
+
+			policyStruct.Founds = append(policyStruct.Founds, policyOutput.Found)
+			policyStruct.Routes = append(policyStruct.Routes, policyOutput.Route)
+			policyStruct.ThresholdFailedListsList = append(policyStruct.ThresholdFailedListsList, policyOutput.ThresholdFailedLists)
+			policyStruct.OriginatorIndices = append(policyStruct.OriginatorIndices, policyOutput.OriginatorIndex)
+			policyStruct.AccessFails = append(policyStruct.AccessFails, policyOutput.AccessFailed)
+			policyStruct.PaymentListList = append(policyStruct.PaymentListList, policyOutput.PaymentList)
+			i++
+		}
+		
+		state = UpdatePendingMap(state, policyStruct)
+		state = UpdateRerouteMap(state, policyStruct)
+		state = UpdateCacheMap(state, policyStruct)
+		state = UpdateOriginatorIndex(state, policyStruct)
+		state = UpdateSuccessfulFound(state, policyStruct)
+		state = UpdateFailedRequestsThreshold(state, policyStruct)
+		state = UpdateFailedRequestsAccess(state, policyStruct)
+		state = UpdateRouteListAndFlush(state, policyStruct)
+		state = UpdateNetwork(state, policyStruct)
 
 		curState := State{
 			Graph:                   state.Graph,

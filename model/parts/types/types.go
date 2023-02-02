@@ -49,3 +49,12 @@ type Policy struct {
 	AccessFailed         bool
 	PaymentList          []Payment
 }
+
+type PolicyStruct struct {
+	Founds                   []bool
+	Routes                   []Route
+	ThresholdFailedListsList [][][]Threshold
+	OriginatorIndices        []int
+	AccessFails              []bool
+	PaymentListList          [][]Payment
+}
