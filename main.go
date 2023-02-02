@@ -6,6 +6,7 @@ import (
 	. "go-incentive-simulation/model/parts/types"
 	. "go-incentive-simulation/model/parts/update"
 	. "go-incentive-simulation/model/state"
+	. "go-incentive-simulation/readroutes"
 	"time"
 	//. "go-incentive-simulation/model/constants"
 )
@@ -58,6 +59,14 @@ func main() {
 		//PrintState(state)
 	}
 	PrintState(state)
+
+	allReq, thresholdFails, requestsToBucketZero, rejectedBucketZero, rejectedFirstHop := ReadRoutes("routes.json")
+	fmt.Println("allReq: ", allReq)
+	fmt.Println("thresholdFails: ", thresholdFails)
+	fmt.Println("requestsToBucketZero: ", requestsToBucketZero)
+	fmt.Println("rejectedBucketZero: ", rejectedBucketZero)
+	fmt.Println("rejectedFirstHop: ", rejectedFirstHop)
+
 	fmt.Print("end of main: ")
 	end := time.Since(start)
 	fmt.Println(end)
