@@ -11,7 +11,7 @@ import (
 	//. "go-incentive-simulation/model/constants"
 )
 
-func MakePolicyOutput(state State) Policy {
+func MakePolicyOutputOrig(state State) Policy {
 	fmt.Println("start of make initial policy")
 	found, route, thresholdFailed, accessFailed, paymentsList := SendRequest(&state)
 	policy := Policy{
@@ -25,13 +25,12 @@ func MakePolicyOutput(state State) Policy {
 	return policy
 }
 
-func main() {
-	start := time.Now()
-	state := MakeInitialState("./data/nodes_data_8_10000.txt")
-	stateArray := []State{state}
-	iterations := 250000
-	numGoRoutines := 100
+func MakePolicyOutput(policyCh chan PolicyStruct, stateCh chan State, allDone chan struct{}) {
+	fmt.Println("start of make initial policy")
+	var state State
+	var wg sync.WaitGroup
 	for i := 0; i < iterations/numGoRoutines; i++ {
+		state = <-stateCh
 		policyStruct := PolicyStruct{
 			Founds:                   make([]bool, numGoRoutines),
 			Routes:                   make([]Route, numGoRoutines),
@@ -40,25 +39,40 @@ func main() {
 			AccessFails:              make([]bool, numGoRoutines),
 			PaymentListList:          make([][]Payment, numGoRoutines),
 		}
-		var wg sync.WaitGroup
 		wg.Add(numGoRoutines)
-		fmt.Println("before PolicyOutput: ", time.Since(start))
 		for j := 0; j < numGoRoutines; j++ {
 			loop := j
 			go func(int) {
-				policyOutput := MakePolicyOutput(state)
+				found, route, thresholdFailed, accessFailed, paymentsList := SendRequest(&state)
+				policy := Policy{
+					Found:                found,
+					Route:                route,
+					ThresholdFailedLists: thresholdFailed,
+					OriginatorIndex:      state.OriginatorIndex,
+					AccessFailed:         accessFailed,
+					PaymentList:          paymentsList,
+				}
 
-				policyStruct.Founds[loop] = policyOutput.Found
-				policyStruct.Routes[loop] = policyOutput.Route
-				policyStruct.ThresholdFailedListsList[loop] = policyOutput.ThresholdFailedLists
-				policyStruct.OriginatorIndices[loop] = policyOutput.OriginatorIndex
-				policyStruct.AccessFails[loop] = policyOutput.AccessFailed
-				policyStruct.PaymentListList[loop] = policyOutput.PaymentList
+				policyStruct.Founds[loop] = policy.Found
+				policyStruct.Routes[loop] = policy.Route
+				policyStruct.ThresholdFailedListsList[loop] = policy.ThresholdFailedLists
+				policyStruct.OriginatorIndices[loop] = policy.OriginatorIndex
+				policyStruct.AccessFails[loop] = policy.AccessFailed
+				policyStruct.PaymentListList[loop] = policy.PaymentList
+
 				wg.Done()
 			}(loop)
 		}
 		wg.Wait()
-		fmt.Println("middle: ", time.Since(start))
+		policyCh <- policyStruct
+	}
+	allDone <- struct{}{}
+}
+
+func UpdateState(policyCh chan PolicyStruct, stateCh chan State, firstState State) {
+	state := firstState
+
+	for policyStruct := range policyCh {
 
 		state = UpdatePendingMap(state, policyStruct)
 		state = UpdateRerouteMap(state, policyStruct)
@@ -70,24 +84,52 @@ func main() {
 		state = UpdateRouteListAndFlush(state, policyStruct)
 		state = UpdateNetwork(state, policyStruct)
 
-		fmt.Println("after Updates: ", time.Since(start))
-
-		curState := State{
-			Graph:                   state.Graph,
-			Originators:             state.Originators,
-			NodesId:                 state.NodesId,
-			RouteLists:              state.RouteLists,
-			PendingMap:              state.PendingMap,
-			RerouteMap:              state.RerouteMap,
-			CacheStruct:             state.CacheStruct,
-			OriginatorIndex:         state.OriginatorIndex,
-			SuccessfulFound:         state.SuccessfulFound,
-			FailedRequestsThreshold: state.FailedRequestsThreshold,
-			FailedRequestsAccess:    state.FailedRequestsAccess,
-			TimeStep:                state.TimeStep}
-		stateArray = append(stateArray, curState)
-		//PrintState(state)
+		for i := 0; i < numGoRoutines; i++ {
+			stateCh <- state
+		}
 	}
+}
+
+const iterations = 250000
+const numGoRoutines = 10
+
+func main() {
+
+	start := time.Now()
+	state := MakeInitialState("./data/nodes_data_8_10000.txt")
+	//stateArray := []State{state}
+
+	//wg := &sync.WaitGroup{}
+	policyCh := make(chan PolicyStruct, numGoRoutines)
+	stateCh := make(chan State, numGoRoutines)
+	allDone := make(chan struct{})
+
+	for i := 0; i < numGoRoutines; i++ {
+		go MakePolicyOutput(policyCh, stateCh, allDone)
+	}
+	go UpdateState(policyCh, stateCh, state)
+
+	stateCh <- state
+
+	<-allDone
+
+	state = <-stateCh
+	//curState := State{
+	//	Graph:                   state.Graph,
+	//	Originators:             state.Originators,
+	//	NodesId:                 state.NodesId,
+	//	RouteLists:              state.RouteLists,
+	//	PendingMap:              state.PendingMap,
+	//	RerouteMap:              state.RerouteMap,
+	//	CacheStruct:             state.CacheStruct,
+	//	OriginatorIndex:         state.OriginatorIndex,
+	//	SuccessfulFound:         state.SuccessfulFound,
+	//	FailedRequestsThreshold: state.FailedRequestsThreshold,
+	//	FailedRequestsAccess:    state.FailedRequestsAccess,
+	//	TimeStep:                state.TimeStep}
+	//stateArray = append(stateArray, curState)
+	//PrintState(state)
+
 	PrintState(state)
 	fmt.Print("end of main: ")
 	end := time.Since(start)

@@ -47,6 +47,7 @@ func SendRequest(prevState *State) (bool, Route, [][]Threshold, bool, []Payment)
 			chunkId = rand.Intn(Constants.GetRangeAddress()-1000) + 0
 		}
 	}
+
 	responsibleNodes := findResponsibleNodes(prevState.NodesId, chunkId)
 	originatorId := prevState.Originators[prevState.OriginatorIndex]
 
