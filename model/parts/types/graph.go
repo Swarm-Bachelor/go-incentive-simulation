@@ -2,16 +2,18 @@ package types
 
 import (
 	"fmt"
+	"sync"
 )
 
 // Graph structure, node Ids in array and edges in map
 type Graph struct {
-	Network   *Network
-	Nodes     []*Node
-	NodeIds   []int
-	Edges     map[int]map[int]Edge
-	NodesMap  map[int]*Node
-	RespNodes [][4]int
+	Network      *Network
+	Nodes        []*Node
+	NodeIds      []int
+	Edges        map[int]map[int]Edge
+	NodesMap     map[int]*Node
+	RespNodes    [][4]int
+	GetNodeMutex sync.Mutex
 }
 
 // Edge that connects to Nodes with attributes about the connection
@@ -96,6 +98,8 @@ func (g *Graph) SetEdgeData(fromNodeId int, toNodeId int, edgeAttrs EdgeAttrs) b
 
 // GetNode getNode will return a node point if exists or return nil
 func (g *Graph) GetNode(nodeId int) *Node {
+	g.GetNodeMutex.Lock()
+	defer g.GetNodeMutex.Unlock()
 	node, ok := g.NodesMap[nodeId]
 	if ok {
 		return node
