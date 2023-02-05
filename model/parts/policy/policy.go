@@ -1,7 +1,6 @@
 package policy
 
 import (
-	"fmt"
 	. "go-incentive-simulation/model/constants"
 	. "go-incentive-simulation/model/parts/types"
 	. "go-incentive-simulation/model/parts/utils"
@@ -38,7 +37,7 @@ func SendRequest(prevState *State) (bool, Route, [][]Threshold, bool, []Payment)
 	// Gets one random chunkId from the range of addresses
 	chunkId := rand.Intn(Constants.GetRangeAddress() - 1)
 	var random float32
-	fmt.Println(prevState.TimeStep)
+	//fmt.Println(prevState.TimeStep)
 
 	if Constants.IsCacheEnabled() == true {
 		numPreferredChunks := 1000

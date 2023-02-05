@@ -5,6 +5,7 @@ import (
 	. "go-incentive-simulation/model/general"
 	. "go-incentive-simulation/model/parts/types"
 	"sort"
+	"sync"
 )
 
 func PrecomputeClosestNodes(nodesId []int) [][4]int {
@@ -399,6 +400,7 @@ func ConsumeTaskConcurrent(request *Request, graph *Graph, respNodes [4]int, rer
 	var thresholdList []Threshold
 	var accessFailed bool
 	var prevNodePaid bool
+	var wg sync.WaitGroup
 
 	resultChan := make(chan resultStruct, Constants.GetBinSize())
 	closeChan := make(chan struct{}, Constants.GetBinSize())
@@ -414,28 +416,32 @@ func ConsumeTaskConcurrent(request *Request, graph *Graph, respNodes [4]int, rer
 			go ConsumeTaskConcurrentPart(resultChan, closeChan, graph, index, respNodes, chunkId, mainOriginatorId, thresholdList, prevNodePaid, rerouteMap, cacheMap)
 		}
 		counter := Constants.GetBinSize()
-	out:
-		for {
-			select {
-			case result := <-resultChan:
-				counter--
-				if result.found || counter == 0 {
-					for i := 0; i < counter; i++ {
-						closeChan <- struct{}{}
-					}
-					route = append(route, result.route...)
-					paymentList = result.paymentList
-					thresholdFailedList = result.thresholdFailedList
-					accessFailed = result.accessFailed
-					foundByCaching = result.foundByCaching
-					found = result.found
+		wg.Add(1)
 
-					break out
+		go func() {
+			for {
+				select {
+				case result := <-resultChan:
+					counter--
+					if result.found || counter == 0 {
+						for i := 0; i < counter; i++ {
+							closeChan <- struct{}{}
+						}
+						route = append(route, result.route...)
+						paymentList = result.paymentList
+						thresholdFailedList = result.thresholdFailedList
+						accessFailed = result.accessFailed
+						foundByCaching = result.foundByCaching
+						found = result.found
+						wg.Done()
+						return
+					}
+				default:
 				}
-			default:
 			}
-		}
+		}()
 	}
+	wg.Wait()
 
 	route = append(route, chunkId)
 
