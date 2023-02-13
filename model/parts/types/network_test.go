@@ -10,7 +10,7 @@ import (
 func TestGenerateAndLoad(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 	bits := 16
-	bin := 8
+	bin := 4
 	size := 10000
 	network := &Network{Bits: bits, Bin: bin}
 	nodes := network.Generate(size)

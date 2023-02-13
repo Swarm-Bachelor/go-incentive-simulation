@@ -39,6 +39,7 @@ type State struct {
 	FailedRequestsThreshold int
 	FailedRequestsAccess    int
 	TimeStep                int
+	PriceList               []int
 }
 
 type Policy struct {

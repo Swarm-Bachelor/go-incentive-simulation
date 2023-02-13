@@ -28,7 +28,7 @@ func main() {
 	start := time.Now()
 	state := MakeInitialState("./data/nodes_data_16_10000.txt")
 
-	const iterations = 250000
+	const iterations = 1000000
 	const numGoroutines = 1
 
 	numLoops := iterations / numGoroutines
@@ -71,9 +71,11 @@ func main() {
 			SuccessfulFound:         state.SuccessfulFound,
 			FailedRequestsThreshold: state.FailedRequestsThreshold,
 			FailedRequestsAccess:    state.FailedRequestsAccess,
-			TimeStep:                state.TimeStep}
+			TimeStep:                state.TimeStep,
+			PriceList:               state.PriceList}
 
 		stateArray[i] = curState
+		//fmt.Println("payment list: ", policyOutputs[0].PaymentList)
 	}
 	fmt.Println("end of main: ")
 	elapsed := time.Since(start)
@@ -96,6 +98,15 @@ func PrintState(state State) {
 	fmt.Println("CacheHits:", state.CacheStruct.CacheHits)
 	fmt.Println("TimeStep: ", state.TimeStep)
 	fmt.Println("OriginatorIndex: ", state.OriginatorIndex)
+	//get average of all the prices
+	avgPrice := 0
+	for _, price := range state.PriceList {
+		avgPrice += price
+	}
+	avgPrice = avgPrice / len(state.PriceList)
+	fmt.Println("Average Price: ", avgPrice)
+	fmt.Println("Length of price list: ", len(state.PriceList))
+
 	//fmt.Println("PendingMap: ", state.PendingMap)
 	//fmt.Println("RerouteMap: ", state.RerouteMap)
 	//fmt.Println("RouteLists: ", state.RouteLists)

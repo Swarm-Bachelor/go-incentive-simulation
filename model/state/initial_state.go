@@ -32,6 +32,7 @@ func MakeInitialState(path string) State {
 		FailedRequestsThreshold: 0,
 		FailedRequestsAccess:    0,
 		TimeStep:                0,
+		PriceList:               []int{},
 	}
 	return initialState
 }

@@ -212,6 +212,7 @@ func UpdateNetwork(prevState State, policyInput Policy) State {
 							network.SetEdgeData(payment.PayNextId, payment.FirstNodeId, newEdgeData2)
 						}
 					}
+					prevState.PriceList = append(prevState.PriceList, val)
 					// fmt.Println("Payment from ", payment.FirstNodeId, " to ", payment.PayNextId, " for chunk ", payment.ChunkId, " with price ", val)
 				} else {
 					edgeData1 := network.GetEdgeData(payment.FirstNodeId, payment.PayNextId)
@@ -236,6 +237,7 @@ func UpdateNetwork(prevState State, policyInput Policy) State {
 							network.SetEdgeData(payment.PayNextId, payment.FirstNodeId, newEdgeData2)
 						}
 					}
+					prevState.PriceList = append(prevState.PriceList, val)
 					//fmt.Println("-1", "Payment from ", payment.FirstNodeId, " to ", payment.PayNextId, " for chunk ", payment.ChunkId, " with price ", val) //Means that the first one is the originator
 				}
 			}

@@ -292,6 +292,7 @@ func ConsumeTask(request *Request, graph *Graph, respNodes [4]int, rerouteMap Re
 			//fmt.Printf("\n orig: %d, chunk_id: %d", mainOriginatorId, chunkId)
 			// nextNodeId, thresholdList, thresholdFailed, accessFailed, payment, prevNodePaid = getNext(originator, chunkId, graph, mainOriginator, prevNodePaid, rerouteMap)
 			nextNodeId, thresholdList, _, accessFailed, payment, prevNodePaid = getNext(originatorId, chunkId, graph, mainOriginatorId, prevNodePaid, rerouteMap)
+			//fmt.Println("payment: ", payment)
 			if payment != (Payment{}) {
 				paymentList = append(paymentList, payment)
 			}
