@@ -37,6 +37,7 @@ func SendRequest(prevState *State) (bool, Route, [][]Threshold, bool, []Payment)
 	// Gets one random chunkId from the range of addresses
 	chunkId := rand.Intn(Constants.GetRangeAddress() - 1)
 	var random float32
+	//fmt.Println(prevState.TimeStep)
 
 	if Constants.IsCacheEnabled() == true {
 		numPreferredChunks := 1000
@@ -63,7 +64,7 @@ func SendRequest(prevState *State) (bool, Route, [][]Threshold, bool, []Payment)
 
 	request := Request{OriginatorId: originatorId, ChunkId: chunkId}
 
-	found, route, thresholdFailed, accessFailed, paymentsList := ConsumeTask(&request, prevState.Graph, responsibleNodes, prevState.RerouteMap, prevState.CacheStruct.CacheMap)
+	found, route, thresholdFailed, accessFailed, paymentsList := ConsumeTaskConcurrent(&request, prevState.Graph, responsibleNodes, prevState.RerouteMap, prevState.CacheStruct.CacheMap)
 
 	return found, route, thresholdFailed, accessFailed, paymentsList
 }
