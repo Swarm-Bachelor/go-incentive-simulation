@@ -68,11 +68,11 @@ type State struct {
 	PendingMap              PendingMap
 	RerouteMap              RerouteMap
 	CacheStruct             CacheStruct
-	OriginatorIndex         int
-	SuccessfulFound         int
-	FailedRequestsThreshold int
-	FailedRequestsAccess    int
-	TimeStep                int
+	OriginatorIndex         int32
+	SuccessfulFound         int32
+	FailedRequestsThreshold int32
+	FailedRequestsAccess    int32
+	TimeStep                int32
 }
 
 type Policy struct {

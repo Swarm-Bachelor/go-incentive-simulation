@@ -8,6 +8,7 @@ import (
 	. "go-incentive-simulation/model/parts/update"
 	. "go-incentive-simulation/model/state"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -27,7 +28,7 @@ func MakePolicyOutput(state *State, index int) Policy {
 	return policy
 }
 
-func UpdateWorker(stateChan chan *State, policyChan chan Policy, globalState *State, stateArray []State, iterations int) {
+func UpdateWorker(stateChan chan *State, policyChan chan Policy, globalState *State, stateArray []State, origMutex *sync.Mutex, networkMutex *sync.Mutex) {
 
 	for {
 		policyOutput := <-policyChan
@@ -35,12 +36,12 @@ func UpdateWorker(stateChan chan *State, policyChan chan Policy, globalState *St
 		UpdatePendingMap(globalState, policyOutput)
 		UpdateRerouteMap(globalState, policyOutput)
 		UpdateCacheMap(globalState, policyOutput)
-		UpdateOriginatorIndex(globalState, policyOutput)
+		UpdateOriginatorIndex(globalState, policyOutput, origMutex)
 		UpdateSuccessfulFound(globalState, policyOutput)
 		UpdateFailedRequestsThreshold(globalState, policyOutput)
 		UpdateFailedRequestsAccess(globalState, policyOutput)
-		UpdateRouteListAndFlush(globalState, policyOutput)
-		UpdateNetwork(globalState, policyOutput)
+		//UpdateRouteListAndFlush(globalState, policyOutput)
+		UpdateNetwork(globalState, policyOutput, networkMutex)
 
 		newState := State{
 			Graph:                   globalState.Graph,
@@ -57,7 +58,7 @@ func UpdateWorker(stateChan chan *State, policyChan chan Policy, globalState *St
 			TimeStep:                globalState.TimeStep,
 		}
 
-		stateArray[newState.TimeStep] = newState
+		stateArray[atomic.LoadInt32(&globalState.TimeStep)] = newState
 
 		stateChan <- &newState
 	}
@@ -77,8 +78,12 @@ func main() {
 	var wg sync.WaitGroup
 	policyChan := make(chan Policy, numGoroutines)
 	stateChan := make(chan *State, numGoroutines)
+	origMutex := &sync.Mutex{}
+	networkMutex := &sync.Mutex{}
 
-	go UpdateWorker(stateChan, policyChan, &globalState, stateArray, iterations)
+	for i := 0; i < 5; i++ {
+		go UpdateWorker(stateChan, policyChan, &globalState, stateArray, origMutex, networkMutex)
+	}
 
 	for j := 0; j < numGoroutines; j++ {
 		wg.Add(1)
