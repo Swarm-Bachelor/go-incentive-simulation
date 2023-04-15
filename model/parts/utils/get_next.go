@@ -39,6 +39,7 @@ func getNext(request types.Request, firstNodeId types.NodeId, prevNodePaid bool,
 		if config.IsEdgeLock() {
 			graph.LockEdge(firstNodeId, nodeId)
 		}
+		
 		if !isThresholdFailed(firstNodeId, nodeId, graph, request) {
 			thresholdFailed = false
 			if config.IsRetryWithAnotherPeer() {
