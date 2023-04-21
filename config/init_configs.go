@@ -2,10 +2,11 @@ package config
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"runtime"
+
+	"gopkg.in/yaml.v3"
 )
 
 // Variables This is the one that gets changed in setup
@@ -42,7 +43,7 @@ func SetExperiment(yml Yml) {
 		// TODO: Add more experiments here
 
 	case "custom":
-		fmt.Println("custom experiment chosen")
+		//fmt.Println("custom experiment chosen")
 		CustomExperiment(yml.CustomExperiment)
 
 	default:

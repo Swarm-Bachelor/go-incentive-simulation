@@ -10,7 +10,7 @@ import (
 
 func MakeInitialState(path string) types.State {
 	// Initialize the state
-	fmt.Println("start of make initial state")
+	//fmt.Println("start of make initial state")
 	rand.Seed(config.GetRandomSeed())
 	network := types.Network{}
 	network.Load(path)

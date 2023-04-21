@@ -7,6 +7,7 @@ import (
 	"go-incentive-simulation/model/parts/workers"
 	"go-incentive-simulation/model/state"
 	"math"
+	"strings"
 	"sync"
 	"time"
 )
@@ -15,10 +16,12 @@ func main() {
 	start := time.Now()
 	config.InitConfigs()
 	network := fmt.Sprintf("./data/nodes_data_%d_10000.txt", config.GetBinSize())
+	//networkStart := time.Now()
 	globalState := state.MakeInitialState(network)
+	//networkElapsed := time.Since(networkStart)
 
-	iterations := config.GetIterations()
-	numTotalGoRoutines := config.GetNumGoroutines()
+	//iterations := config.GetIterations()
+	//numTotalGoRoutines := config.GetNumGoroutines()
 	numRoutingGoroutines := config.GetNumRoutingGoroutines()
 
 	wgMain := &sync.WaitGroup{}
@@ -58,20 +61,21 @@ func main() {
 	close(routeChan)
 	wgOutput.Wait()
 
-	fmt.Println("")
-	fmt.Println("end of main: ")
+	//fmt.Println("")
+	//fmt.Println("end of main: ")
 	elapsed := time.Since(start)
-	fmt.Println("Time taken:", elapsed)
-	fmt.Println("Number of Iterations: ", iterations)
-	fmt.Println("Number of Total Goroutines: ", numTotalGoRoutines)
-	fmt.Println("Number of Routing Goroutines: ", numRoutingGoroutines)
+	new := strings.Trim(elapsed.String(), "s")
+	fmt.Println(new)
+	//fmt.Println("Number of Iterations: ", iterations)
+	//fmt.Println("Number of Total Goroutines: ", numTotalGoRoutines)
+	//fmt.Println("Number of Routing Goroutines: ", numRoutingGoroutines)
 	// allReq, thresholdFails, requestsToBucketZero, rejectedBucketZero, rejectedFirstHop := ReadRoutes("routes.json")
 	// fmt.Println("allReq: ", allReq)
 	// fmt.Println("thresholdFails: ", thresholdFails)
 	// fmt.Println("requestsToBucketZero: ", requestsToBucketZero)
 	// fmt.Println("rejectedBucketZero: ", rejectedBucketZero)
 	// fmt.Println("rejectedFirstHop: ", rejectedFirstHop)
-	PrintState(globalState)
+	//PrintState(globalState)
 
 	// TODO: Add this to another function in another file?
 	// buf, err := ioutil.ReadFile("states.bin")

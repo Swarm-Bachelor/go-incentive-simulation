@@ -1,96 +1,49 @@
-#### Global Configurations ####
-
-# Global configuration options, defaults in comment
 ConfOptions:
-  # Iterations: 10_000_000, best in multiples of 100_000
-  Iterations: 10_000_000
-  # Bits: 16, bits in maximum address
-  Bits: 16
-  # NetworkSize: 10000, number of nodes in network
-  NetworkSize: 10000
-  # BinSize: 16, number of nodes in each bin/bucket for each node
-  BinSize: 16
-  # RangeAddress: 65536, addresses with range from 0 to X
-  RangeAddress: 65536
-  # Originators: 1000, number of originators initiating requests
-  Originators: 1000
-  # RefreshRate: 8, the rate of which edge dept gets removed per second
-  RefreshRate: 8
-  # Threshold: 16, the maximum edge debt a node in an edge can have
   Threshold: 16
-  # RandomSeed: 123456789, seed for deterministic randomness
-  RandomSeed: 123456789
-  # MaxProximityOrder: 16, determines how many accounting units is transferred according to distance from chunk.
-  MaxProximityOrder: 16
-  # Price: 1, the base unit for prices
-  Price: 1
-  # RequestsPerSecond: 12500, number of iterations during a second
-  RequestsPerSecond: 12500
-  # EdgeLock: true, keeps edges locked while in use for concurrency
+  WriteRoutesToFile: true
+  RangeAddress: 65536
+  Originators: 1000
+  Iterations: 100_000_000
   EdgeLock: true
-  # SameOriginator: false, makes the same originator request many times in a row
-  SameOriginator: false
-  # PrecomputeRespNodes: true, precomputes responsible nodes for chunks or ad-hoc during run
-  PrecomputeRespNodes: true
-  # WriteRoutesToFile: false, writes routes to file for future usage
-  WriteRoutesToFile: false
-  # WriteStatesToFile: false, writes a subset of states to file for future usage
-  WriteStatesToFile: false
-  # IterationMeansUniqueChunk: false, if a chunk chosen again by waiting/retry counts as an iteration
+  MaxProximityOrder: 16
+  NetworkSize: 10000
+  RandomSeed: 123456789
+  BinSize: 16
   IterationMeansUniqueChunk: false
-  # DebugPrints: false, enables some useful prints to terminal during the run
-  DebugPrints: true
-  # DebugInterval: 1_000_000, how often these prints should be done
-  DebugInterval: 1_000_000
-  # NumGoroutines: -1, number of active goroutines, leave at -1 for automatically using numCPU
-  NumGoroutines: -1
-  # Enabled the outputWorker which handles writing output to file and analysis of results
-  OutputEnabled: true
-  # Which logic should be used in the outputWorker
+  SameOriginator: false
   OutputOptions:
-    MeanRewardPerForward: true
-    AverageNumberOfHops: true
     AverageFractionOfTotalRewardsK8: false
-    AverageFractionOfTotalRewardsK16: false
     RewardFairnessForForwardingAction: false
-    RewardFairnessForStoringAction: false
     RewardFairnessForAllActions: false
+    AverageNumberOfHops: false
+    AverageFractionOfTotalRewardsK16: false
+    MeanRewardPerForward: false
+    RewardFairnessForStoringAction: false
     NegativeIncome: false
-
-# Experiments to choose from:
-  # omega: maxPoCheckEnabled
-  #
-  # empty or default: default, in code
-  # custom: custom, defined below
-
+  OutputEnabled: true
+  DebugInterval: 1_000_000
+  WriteStatesToFile: false
+  Price: 1
+  Bits: 16
+  RequestsPerSecond: 12500
+  RefreshRate: 8
+  DebugPrints: false
+  PrecomputeRespNodes: true
+  NumGoroutines: 13
 Experiment:
-  Name: "custom"
-
-# Defines your own custom experiment
+  Name: custom
 CustomExperiment:
-  # ThresholdEnabled: true, enabling the maximum limit of debt an edge can have in one direction
+  MaxPOCheckEnabled: true
   ThresholdEnabled: true
-  # ForgivenessEnabled: true, edge debt gets forgiven some amount on an interval (amortized)
-  ForgivenessEnabled: true
-  # PaymentEnabled: false, nodes pay if they would get a threshold failure
-  PaymentEnabled: false
-  # MaxPOCheckEnabled: false, used to find the proper variable called "omega" in the python paper
-  MaxPOCheckEnabled: false
-  # OnlyOriginatorPays: false, only the originator will pay, others will threshold fail or wait
-  OnlyOriginatorPays: false
-  # PayOnlyForCurrentRequest: false, only pay for current request or the full debt on the edge
-  PayOnlyForCurrentRequest: false
-  # ForwardersPayForceOriginatorToPay: false, if threshold fails, forces all the nodes in the route to pay for the current request
-  ForwardersPayForceOriginatorToPay: false
-  # WaitingEnabled: false, when Threshold fails, will wait before trying to traverse same route
-  WaitingEnabled: false
-  # RetryWithAnotherPeer: false, the Route to the chunk will try to take many paths to find the chunk
-  RetryWithAnotherPeer: false
-  # CacheIsEnabled: false, cache on nodes which stores chunks the node have seen before
-  CacheIsEnabled: false
-  # PreferredChunks: false, fits well with cache, where some chunks are chosen more often than others
-  PreferredChunks: false
-  # AdjustableThreshold: false, the threshold limit of an edge is determined based on the XOR distance
   AdjustableThreshold: false
-  # PayIfOrigPays: false, only pay if the originator pays -- NOT NEEDED
+  CacheIsEnabled: false
+  OnlyOriginatorPays: false
   PayIfOrigPays: false
+  PreferredChunks: false
+  ForgivenessEnabled: true
+  RetryWithAnotherPeer: false
+  WaitingEnabled: false
+  PaymentEnabled: false
+  PayOnlyForCurrentRequest: false
+  ForwardersPayForceOriginatorToPay: false
+

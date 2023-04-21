@@ -22,7 +22,7 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 	var rewardFairnessForForwardingAction output.RewardFairnessForForwardingActions
 	var negativeIncome output.NegativeIncome
 	negativeIncome.IncomeMap = make(map[int]int)
-	
+
 	//filePath := "./results/output.txt"
 	//err := os.Remove(filePath)
 	//if err != nil {
@@ -47,7 +47,7 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 	//		fmt.Println("Couldn't flush the remaining buffer in the writer for output")
 	//	}
 	//}(writer)
-	
+
 	if config.GetMeanRewardPerForward() {
 		file, filePath := output.MakeMeanRewardPerForwardFile()
 		defer func(file *os.File) {
@@ -162,7 +162,7 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 	}
 	for outputStruct = range outputChan {
 		counter++
-
+		//fmt.Println("Route: ", outputStruct.RouteWithPrices)
 		if config.GetMeanRewardPerForward() {
 			for i := range outputStruct.RouteWithPrices {
 				if i == len(outputStruct.RouteWithPrices)-1 {
