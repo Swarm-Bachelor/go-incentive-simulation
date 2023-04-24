@@ -1,6 +1,6 @@
 ConfOptions:
   Threshold: 16
-  WriteRoutesToFile: true
+  WriteRoutesToFile: false
   RangeAddress: 65536
   Originators: 1000
   Iterations: 100_000_000
@@ -29,7 +29,7 @@ ConfOptions:
   RefreshRate: 8
   DebugPrints: false
   PrecomputeRespNodes: true
-  NumGoroutines: 13
+  NumGoroutines: 25
 Experiment:
   Name: custom
 CustomExperiment:
