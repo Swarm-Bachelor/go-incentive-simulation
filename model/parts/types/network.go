@@ -173,8 +173,8 @@ func (network *Network) GenerateConcurrently(count int, file *os.File) error {
 		wg.Add(1)
 		//go network.GeneratePart(wg, finishChan, dumpChan, nodeIdsChan)
 		go network.GeneratePart(wg, finishChan, mutex, nodeIdsChan, file)
-
 	}
+
 	for counter < len(nodeIds) {
 		fmt.Println(counter)
 		if counter+nodeIdsInterval > len(nodeIds) {
@@ -262,7 +262,10 @@ func (network *Network) DumpConcurrent(mutex *sync.Mutex, nodes []*Node, file *o
 	mutex.Lock()
 	defer mutex.Unlock()
 	_, err := file.Write(dataJson)
-	file.Sync()
+	if err != nil {
+		return err
+	}
+	err = file.Sync()
 	if err != nil {
 		return err
 	}
@@ -304,12 +307,12 @@ func (network *Network) Dump(file *os.File) error {
 }
 
 func Choice(nodes []NodeId, k int) []NodeId {
-	res := make([]NodeId, k)
+	res := make([]NodeId, 0)
 
 	var val int
 	for i := 0; i < k; i++ {
 		val = rand.Intn(len(nodes)) - 1
-		res[i] = nodes[val]
+		res = append(res, nodes[val])
 	}
 	return res
 }

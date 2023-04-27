@@ -9,12 +9,12 @@ ConfOptions:
   # NetworkSize: 10000, number of nodes in network
   NetworkSize: 100_000
   # BinSize: 16, number of nodes in each bin/bucket for each node
-  BinSize: 16
+  BinSize: 8
   # RangeAddress: 65536, addresses with range from 0 to X
   RangeAddress: 4_294_967_296
   # RangeAddress: 65536
   # Originators: 1000, number of originators initiating requests
-  Originators: 1000
+  Originators: 10_000
   # RefreshRate: 8, the rate of which edge dept gets removed per second
   RefreshRate: 8
   # Threshold: 16, the maximum edge debt a node in an edge can have
@@ -32,7 +32,7 @@ ConfOptions:
   # SameOriginator: false, makes the same originator request many times in a row
   SameOriginator: false
   # PrecomputeRespNodes: true, precomputes responsible nodes for chunks or ad-hoc during run
-  PrecomputeRespNodes: true
+  PrecomputeRespNodes: false
   # WriteRoutesToFile: false, writes routes to file for future usage
   WriteRoutesToFile: false
   # WriteStatesToFile: false, writes a subset of states to file for future usage
