@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"go-incentive-simulation/model/general"
 	"math/rand"
 	"os"
@@ -125,11 +126,13 @@ func (network *Network) node(nodeId NodeId) *Node {
 
 func (network *Network) Generate(count int) []*Node {
 	nodeIds := generateIds(count, (1<<network.Bits)-1)
+	fmt.Print("Ids generated\n")
 	nodes := make([]*Node, 0)
 	for _, i := range nodeIds {
 		node := network.node(NodeId(i))
 		nodes = append(nodes, node)
 	}
+	fmt.Print("Nodes generated\n")
 	pairs := make([][2]*Node, 0)
 	for i, node1 := range nodes {
 		for j := i + 1; j < len(nodes); j++ {
@@ -137,10 +140,13 @@ func (network *Network) Generate(count int) []*Node {
 			pairs = append(pairs, [2]*Node{node1, node2})
 		}
 	}
+	fmt.Print("Pairs generated\n")
 	shufflePairs(pairs)
+	fmt.Print("Pairs shuffled\n")
 	for _, pair := range pairs {
 		pair[0].add(pair[1])
 	}
+	fmt.Print("Pairs added\n")
 	return nodes
 }
 
@@ -199,7 +205,7 @@ func generateIds(totalNumbers int, maxValue int) []int {
 	rand.Seed(time.Now().UnixNano())
 	generatedNumbers := make(map[int]bool)
 	for len(generatedNumbers) < totalNumbers {
-		num := rand.Intn(maxValue + 1)
+		num := rand.Intn(maxValue-1) + 1
 		generatedNumbers[num] = true
 	}
 

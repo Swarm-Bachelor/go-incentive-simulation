@@ -1,24 +1,24 @@
 ConfOptions:
   Threshold: 16
   WriteRoutesToFile: true
-  RangeAddress: 65536
+  RangeAddress: 4294967296
   Originators: 1000
-  Iterations: 100_000_000
+  Iterations: 10_000_000
   EdgeLock: true
   MaxProximityOrder: 16
-  NetworkSize: 10000
-  RandomSeed: 123456789
-  BinSize: 16
+  NetworkSize: 1_000_000
+  BinSize: 32
   IterationMeansUniqueChunk: false
   SameOriginator: false
+  RandomSeed: 123456789
   OutputOptions:
     AverageFractionOfTotalRewardsK8: false
     RewardFairnessForForwardingAction: false
     RewardFairnessForAllActions: false
-    AverageNumberOfHops: false
-    AverageFractionOfTotalRewardsK16: false
-    MeanRewardPerForward: false
+    AverageNumberOfHops: true
     RewardFairnessForStoringAction: false
+    MeanRewardPerForward: true
+    AverageFractionOfTotalRewardsK16: true
     NegativeIncome: false
   OutputEnabled: true
   DebugInterval: 1_000_000
@@ -34,13 +34,13 @@ Experiment:
   Name: custom
 CustomExperiment:
   MaxPOCheckEnabled: true
-  ThresholdEnabled: true
+  ThresholdEnabled: false
   AdjustableThreshold: false
   CacheIsEnabled: false
   OnlyOriginatorPays: false
   PayIfOrigPays: false
   PreferredChunks: false
-  ForgivenessEnabled: true
+  ForgivenessEnabled: false
   RetryWithAnotherPeer: false
   WaitingEnabled: false
   PaymentEnabled: false

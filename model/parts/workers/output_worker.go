@@ -172,12 +172,14 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 				meanRewardPerForward.AllRewards = append(meanRewardPerForward.AllRewards, reward)
 				meanRewardPerForward.SumRewards += reward
 			}
-			if counter%100_000 == 0 {
+			if counter%1_000_000 == 0 {
 				mean := meanRewardPerForward.CalculateMeanRewardPerForward()
 				_, err := meanRewardPerForward.Writer.WriteString(fmt.Sprintf("Mean reward per forward: %f \n", mean))
 				if err != nil {
 					panic(err)
 				}
+				meanRewardPerForward.AllRewards = nil
+				meanRewardPerForward.SumRewards = 0
 			}
 		}
 
@@ -190,6 +192,8 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 				if err != nil {
 					panic(err)
 				}
+				avgNumberOfHops.TotalNumberOfHops = 0
+				avgNumberOfHops.NumberOfRoutes = 0
 			}
 		}
 
@@ -226,6 +230,7 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 				if err != nil {
 					panic(err)
 				}
+				fractions.Fractions = nil
 			}
 		}
 
@@ -236,12 +241,14 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 				rewardFairnessForStoringAction.AllStoringRewards = append(rewardFairnessForStoringAction.AllStoringRewards, reward)
 				rewardFairnessForStoringAction.SumAllStoringRewards += reward
 			}
-			if counter == 100_000 {
+			if counter == config.GetIterations() {
 				fairness := rewardFairnessForStoringAction.CalculateRewardFairnessForStoringAction()
 				_, err := rewardFairnessForStoringAction.Writer.WriteString(fmt.Sprintf("Reward fairness for storing action: %f \n", fairness))
 				if err != nil {
 					panic(err)
 				}
+				rewardFairnessForStoringAction.AllStoringRewards = nil
+				rewardFairnessForStoringAction.SumAllStoringRewards = 0
 			}
 		}
 
@@ -280,7 +287,7 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 					rewardFairnessForForwardingAction.AllForwardingRewards = append(rewardFairnessForForwardingAction.AllForwardingRewards, reward)
 					rewardFairnessForForwardingAction.SumAllForwardingRewards += reward
 				}
-				if counter == 100_000 {
+				if counter == config.GetIterations() {
 					fairness := rewardFairnessForForwardingAction.CalculateRewardFairnessForForwardingAction()
 					_, err := rewardFairnessForAllActions.Writer.WriteString(fmt.Sprintf("Reward fairness for forwarding action: %f \n", fairness))
 					if err != nil {

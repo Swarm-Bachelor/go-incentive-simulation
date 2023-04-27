@@ -15,7 +15,7 @@ import (
 func main() {
 	start := time.Now()
 	config.InitConfigs()
-	network := fmt.Sprintf("./data/nodes_data_%d_10000.txt", config.GetBinSize())
+	network := fmt.Sprintf("./data/nodes_data_%d_10000txt", config.GetBinSize())
 	//networkStart := time.Now()
 	globalState := state.MakeInitialState(network)
 	//networkElapsed := time.Since(networkStart)
