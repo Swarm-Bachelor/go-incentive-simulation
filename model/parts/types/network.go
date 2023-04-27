@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"go-incentive-simulation/model/general"
 	"math/rand"
 	"os"
@@ -63,17 +64,17 @@ func (network *Network) Load(path string) (int, int, map[NodeId]*Node) {
 	}(file)
 	decoder := json.NewDecoder(file)
 
-	var test jsonFormat
-	err := decoder.Decode(&test)
+	var format jsonFormat
+	err := decoder.Decode(&format)
 	if err != nil {
 		return 0, 0, nil
 	}
 
-	network.Bits = test.Bits
-	network.Bin = test.Bin
+	network.Bits = format.Bits
+	network.Bin = format.Bin
 	network.NodesMap = make(map[NodeId]*Node)
 
-	for _, node := range test.Nodes {
+	for _, node := range format.Nodes {
 		node1 := network.node(NodeId(node.Id))
 		sort.Ints(node.Adj)
 		for _, adj := range node.Adj {
@@ -126,8 +127,8 @@ func (network *Network) node(nodeId NodeId) *Node {
 func (network *Network) Generate(count int) []*Node {
 	nodeIds := generateIds(count, (1<<network.Bits)-1)
 	nodes := make([]*Node, 0)
-	for _, i := range nodeIds {
-		node := network.node(NodeId(i))
+	for _, Id := range nodeIds {
+		node := network.node(NodeId(Id))
 		nodes = append(nodes, node)
 	}
 	pairs := make([][2]*Node, 0)
@@ -144,7 +145,134 @@ func (network *Network) Generate(count int) []*Node {
 	return nodes
 }
 
-func (network *Network) Dump(path string) error {
+func (network *Network) GenerateConcurrently(count int, file *os.File) error {
+	nodeIds := generateIds(count, (1<<network.Bits)-1)
+	wg := &sync.WaitGroup{}
+	mutex := &sync.Mutex{}
+	numGoroutines := 10
+	nodeIdsInterval := 1_000
+	counter := 0
+
+	//dumpChan := make(chan []*Node, numGoroutines)
+	nodeIdsChan := make(chan []int, numGoroutines)
+	finishChan := make(chan bool, numGoroutines)
+
+	type NetworkData struct {
+		Bits int `json:"bits"`
+		Bin  int `json:"bin"`
+	}
+	data := NetworkData{network.Bits, network.Bin}
+	dataJson, _ := json.Marshal(data)
+	_, err := file.Write(dataJson)
+	if err != nil {
+		return err
+	}
+	//go network.DumpConcurrent(dumpChan, file)
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		//go network.GeneratePart(wg, finishChan, dumpChan, nodeIdsChan)
+		go network.GeneratePart(wg, finishChan, mutex, nodeIdsChan, file)
+	}
+
+	for counter < len(nodeIds) {
+		fmt.Println(counter)
+		if counter+nodeIdsInterval > len(nodeIds) {
+			nodeIdsChan <- nodeIds[counter:]
+		} else {
+			nodeIdsChan <- nodeIds[counter : counter+nodeIdsInterval]
+		}
+		counter += nodeIdsInterval
+	}
+	for i := 0; i < numGoroutines; i++ {
+		finishChan <- true
+	}
+	wg.Wait()
+	//close(dumpChan)
+	//close(nodeIdsChan)
+
+	return nil
+}
+
+func (network *Network) GeneratePart(wg *sync.WaitGroup, finishChan chan bool, mutex *sync.Mutex, nodeIdsChan chan []int, file *os.File) {
+	defer wg.Done()
+	for {
+		select {
+		case finished := <-finishChan:
+			if finished {
+				return
+			}
+		case nodeIds := <-nodeIdsChan:
+			nodes := make([]*Node, 0)
+
+			for _, IdInt := range nodeIds {
+				node := &Node{
+					Network: network,
+					Id:      NodeId(IdInt),
+					AdjIds:  make([][]NodeId, len(nodeIds)),
+				}
+				nodes = append(nodes, node)
+			}
+
+			pairs := make([][2]*Node, 0)
+			for i, node1 := range nodes {
+				for j := i + 1; j < len(nodes); j++ {
+					node2 := nodes[j]
+					pairs = append(pairs, [2]*Node{node1, node2})
+				}
+				//shufflePairs(pairs)
+				for _, pair := range pairs {
+					pair[0].add(pair[1])
+				}
+			}
+			//dumpChan <- nodes
+			fmt.Println("dumping")
+			err := network.DumpConcurrent(mutex, nodes, file)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+}
+
+func (network *Network) DumpConcurrent(mutex *sync.Mutex, nodes []*Node, file *os.File) error {
+	type NodesData struct {
+		Nodes []struct {
+			Id  int   `json:"id"`
+			Adj []int `json:"adj"`
+		} `json:"nodes"`
+	}
+	data := NodesData{make([]struct {
+		Id  int   `json:"id"`
+		Adj []int `json:"adj"`
+	}, 0)}
+	for _, node := range nodes {
+		var result []int
+		for _, list := range node.AdjIds {
+			for _, ele := range list {
+				result = append(result, int(ele))
+			}
+		}
+		data.Nodes = append(data.Nodes, struct {
+			Id  int   `json:"id"`
+			Adj []int `json:"adj"`
+		}{Id: int(node.Id), Adj: result})
+	}
+	dataJson, _ := json.Marshal(data)
+	mutex.Lock()
+	defer mutex.Unlock()
+	_, err := file.Write(dataJson)
+	if err != nil {
+		return err
+	}
+	err = file.Sync()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (network *Network) Dump(file *os.File) error {
 	type NetworkData struct {
 		Bits  int `json:"bits"`
 		Bin   int `json:"bin"`
@@ -170,8 +298,8 @@ func (network *Network) Dump(path string) error {
 			Adj []int `json:"adj"`
 		}{Id: int(node.Id), Adj: result})
 	}
-	file, _ := json.Marshal(data)
-	err := os.WriteFile(path, file, 0644)
+	dataJson, _ := json.Marshal(data)
+	_, err := file.Write(dataJson)
 	if err != nil {
 		return err
 	}
@@ -179,12 +307,12 @@ func (network *Network) Dump(path string) error {
 }
 
 func Choice(nodes []NodeId, k int) []NodeId {
-	res := make([]NodeId, k)
+	res := make([]NodeId, 0)
 
 	var val int
 	for i := 0; i < k; i++ {
 		val = rand.Intn(len(nodes)) - 1
-		res[i] = nodes[val]
+		res = append(res, nodes[val])
 	}
 	return res
 }
@@ -199,7 +327,7 @@ func generateIds(totalNumbers int, maxValue int) []int {
 	rand.Seed(time.Now().UnixNano())
 	generatedNumbers := make(map[int]bool)
 	for len(generatedNumbers) < totalNumbers {
-		num := rand.Intn(maxValue + 1)
+		num := rand.Intn(maxValue-1) + 1
 		generatedNumbers[num] = true
 	}
 

@@ -47,7 +47,7 @@ func CreateGraphNetwork(net *types.Network) (*types.Graph, error) {
 	numNodes := len(net.NodesMap)
 
 	Edges := make(map[types.NodeId]map[types.NodeId]*types.Edge)
-	respNodes := make([][4]types.NodeId, config.GetRangeAddress())
+	respNodes := make([][4]types.NodeId, 0)
 	if config.IsPrecomputeRespNodes() {
 		respNodes = PrecomputeRespNodes(sortedNodeIds)
 	}
