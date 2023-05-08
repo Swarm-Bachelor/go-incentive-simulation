@@ -14,7 +14,7 @@ type Graph struct {
 	Nodes     []*Node
 	NodeIds   []NodeId
 	Edges     map[NodeId]map[NodeId]*Edge
-	RespNodes [][4]NodeId
+	RespNodes map[ChunkId][4]NodeId
 	Mutex     sync.Mutex
 }
 
@@ -69,11 +69,12 @@ func BinarySearchClosest(arr []NodeId, target int, n int) []NodeId {
 func (g *Graph) FindResponsibleNodes(chunkId ChunkId) [4]NodeId {
 	chunkIdInt := chunkId.ToInt()
 	if config.IsPrecomputeRespNodes() {
-		return g.RespNodes[chunkIdInt]
+		return g.RespNodes[chunkId]
 
 	} else {
-		if g.RespNodes[chunkIdInt][0] != 0 {
-			return g.RespNodes[chunkIdInt]
+
+		if _, ok := g.RespNodes[chunkId]; ok {
+			return g.RespNodes[chunkId]
 
 		} else {
 			numNodesSearch := config.GetBits()

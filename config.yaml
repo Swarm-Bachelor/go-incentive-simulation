@@ -1,13 +1,13 @@
 ConfOptions:
   Threshold: 16
-  WriteRoutesToFile: true
-  RangeAddress: 4294967296
+  WriteRoutesToFile: false
+  RangeAddress: 65536
   Originators: 1000
-  Iterations: 10_000_000
+  Iterations: 250_000
   EdgeLock: true
   MaxProximityOrder: 16
-  NetworkSize: 1_000_000
-  BinSize: 32
+  NetworkSize: 10_000
+  BinSize: 16
   IterationMeansUniqueChunk: false
   SameOriginator: false
   RandomSeed: 123456789
@@ -20,7 +20,7 @@ ConfOptions:
     MeanRewardPerForward: true
     AverageFractionOfTotalRewardsK16: true
     NegativeIncome: false
-  OutputEnabled: true
+  OutputEnabled: false
   DebugInterval: 1_000_000
   WriteStatesToFile: false
   Price: 1

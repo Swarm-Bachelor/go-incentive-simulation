@@ -172,9 +172,9 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 				meanRewardPerForward.AllRewards = append(meanRewardPerForward.AllRewards, reward)
 				meanRewardPerForward.SumRewards += reward
 			}
-			if counter%1_000_000 == 0 {
+			if counter%100_000 == 0 {
 				mean := meanRewardPerForward.CalculateMeanRewardPerForward()
-				_, err := meanRewardPerForward.Writer.WriteString(fmt.Sprintf("Mean reward per forward: %f \n", mean))
+				_, err := meanRewardPerForward.Writer.WriteString(fmt.Sprintf("%f \n", mean))
 				if err != nil {
 					panic(err)
 				}
@@ -188,7 +188,7 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 			avgNumberOfHops.NumberOfRoutes++
 			if counter%100_000 == 0 {
 				hops := avgNumberOfHops.CalculateAverageNumberOfHops()
-				_, err := avgNumberOfHops.Writer.WriteString(fmt.Sprintf("Average number of hops: %f \n", hops))
+				_, err := avgNumberOfHops.Writer.WriteString(fmt.Sprintf("%f\n", hops))
 				if err != nil {
 					panic(err)
 				}
@@ -197,7 +197,7 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 			}
 		}
 
-		if config.GetAverageFractionOfTotalRewardsK16() && config.GetMaxProximityOrder() == 16 {
+		if config.GetAverageFractionOfTotalRewardsK16() && config.GetBinSize() == 16 {
 			var FractionOfRewardsK16 output.FractionOfRewardsK16
 			if len(outputStruct.RouteWithPrices) == 2 {
 				FractionOfRewardsK16.RouteRewards = append(FractionOfRewardsK16.RouteRewards, outputStruct.RouteWithPrices[0].Price-outputStruct.RouteWithPrices[1].Price)
@@ -224,9 +224,9 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 				FractionOfRewardsK16.RouteRewards = nil
 				FractionOfRewardsK16.SumRouteRewards = 0
 			}
-			if counter%100_000 == 0 {
+			if counter%1_000_000 == 0 {
 				hop1, hop2, hop3 := fractions.CalculateFractionOfRewards()
-				_, err := fractions.Writer.WriteString(fmt.Sprintf("hop 1: %f, hop 2: %f, hop 3: %f \n", hop1, hop2, hop3))
+				_, err := fractions.Writer.WriteString(fmt.Sprintf("%f \t %f \t %f \n", hop1, hop2, hop3))
 				if err != nil {
 					panic(err)
 				}
@@ -266,7 +266,7 @@ func OutputWorker(outputChan chan types.OutputStruct, wg *sync.WaitGroup) {
 					rewardFairnessForAllActions.AllRewards = append(rewardFairnessForAllActions.AllRewards, reward)
 					rewardFairnessForAllActions.SumAllRewards += reward
 				}
-				if counter == 100_000 {
+				if counter == 250_000 {
 					fairness := rewardFairnessForAllActions.CalculateRewardFairnessForAllActions()
 					_, err := rewardFairnessForAllActions.Writer.WriteString(fmt.Sprintf("Reward fairness for all actions: %f \n", fairness))
 					if err != nil {

@@ -186,10 +186,14 @@ func (network *Network) Dump(path string) error {
 
 func Choice(nodes []NodeId, k int) []NodeId {
 	res := make([]NodeId, k)
-
+	used := make(map[int]bool)
 	var val int
 	for i := 0; i < k; i++ {
 		val = rand.Intn(len(nodes)) - 1
+		for used[val] {
+			val = rand.Intn(len(nodes)) - 1
+		}
+		used[val] = true
 		res[i] = nodes[val]
 	}
 	return res
